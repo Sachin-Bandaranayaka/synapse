@@ -1,0 +1,210 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Used for migrations and direct connections
+}
+
+// STEP 1: ADDED 'SUPER_ADMIN' ROLE
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  TEAM_MEMBER
+}
+
+enum LeadStatus {
+  PENDING
+  CONFIRMED
+  NO_ANSWER
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  RETURNED
+  CANCELLED
+}
+
+enum ShippingProvider {
+  FARDA_EXPRESS
+  TRANS_EXPRESS
+  SL_POST
+  ROYAL_EXPRESS
+}
+
+// STEP 2: ADDED THE NEW 'Tenant' MODEL
+// This model represents each individual business/seller account on your platform.
+model Tenant {
+  id               String            @id @default(cuid())
+  name             String            // This is the line we'll make unique
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  users            User[]
+  products         Product[]
+  leads            Lead[]
+  orders           Order[]
+  stockAdjustments StockAdjustment[]
+  trackingUpdates  TrackingUpdate[]
+
+  @@unique([name]) // <-- ADD THIS LINE
+}
+
+
+// STEP 3: LINKED 'User' MODEL TO A 'Tenant'
+model User {
+  id             String            @id @default(uuid())
+  email          String            @unique
+  name           String?
+  password       String
+  role           Role              @default(TEAM_MEMBER)
+  permissions    String[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  orders         Order[]
+  leads          Lead[]
+  stockAdjustments StockAdjustment[]
+
+  // Every user must belong to a tenant.
+  tenantId       String
+  tenant         Tenant            @relation(fields: [tenantId], references: [id])
+
+  @@index([email])
+  @@index([tenantId]) // Added for query performance
+}
+
+// STEP 4: LINKED 'Product' MODEL TO A 'Tenant'
+model Product {
+  id               String            @id @default(uuid())
+  code             String
+  name             String
+  description      String?
+  price            Float
+  stock            Int               @default(0)
+  lowStockAlert    Int               @default(10)
+  orders           Order[]
+  leads            Lead[]
+  stockAdjustments StockAdjustment[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  // Every product must belong to a tenant.
+  tenantId         String
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+
+  @@unique([code, tenantId]) // A product code should be unique within a tenant, not globally.
+  @@index([tenantId])      // Added for query performance
+}
+
+// STEP 5: LINKED 'Lead' MODEL TO A 'Tenant'
+model Lead {
+  id          String     @id @default(uuid())
+  csvData     Json
+  productCode String
+  product     Product    @relation(fields: [productCode, tenantId], references: [code, tenantId])
+  status      LeadStatus @default(PENDING)
+  assignedTo  User?      @relation(fields: [userId], references: [id])
+  userId      String?
+  order       Order?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Every lead must belong to a tenant.
+  tenantId    String
+  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+
+  @@index([productCode])
+  @@index([userId])
+  @@index([tenantId]) // Added for query performance
+}
+
+// STEP 6: LINKED 'Order' MODEL TO A 'Tenant'
+model Order {
+  id                  String            @id
+  number              Int               @default(autoincrement())
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  status              OrderStatus       @default(PENDING)
+  quantity            Int               @default(1)
+  total               Float             @default(0)
+  discount            Float             @default(0)
+  customerName        String
+  customerPhone       String
+  customerSecondPhone String?
+  customerAddress     String
+  customerCity        String            @default("")
+  customerEmail       String?
+  notes               String?
+  shippingProvider    ShippingProvider?
+  trackingNumber      String?
+  shippedAt           DateTime?
+  deliveredAt         DateTime?
+  trackingUpdates     TrackingUpdate[]
+  product             Product           @relation(fields: [productId], references: [id])
+  productId           String
+  lead                Lead              @relation(fields: [leadId], references: [id])
+  leadId              String            @unique
+  assignedTo          User              @relation(fields: [userId], references: [id])
+  userId              String
+  invoicePrinted      Boolean           @default(false)
+
+  // Every order must belong to a tenant.
+  tenantId            String
+  tenant              Tenant            @relation(fields: [tenantId], references: [id])
+
+  @@index([productId])
+  @@index([leadId])
+  @@index([userId])
+  @@index([status])
+  @@index([tenantId]) // Added for query performance
+}
+
+// STEP 7: LINKED 'StockAdjustment' MODEL TO A 'Tenant'
+model StockAdjustment {
+  id            String   @id @default(uuid())
+  product       Product  @relation(fields: [productId], references: [id])
+  productId     String
+  quantity      Int
+  reason        String
+  previousStock Int
+  newStock      Int
+  adjustedBy    User     @relation(fields: [userId], references: [id])
+  userId        String
+  createdAt     DateTime @default(now())
+
+  // Every stock adjustment must belong to a tenant.
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([productId])
+  @@index([userId])
+  @@index([tenantId]) // Added for query performance
+}
+
+// STEP 8: LINKED 'TrackingUpdate' MODEL TO A 'Tenant'
+model TrackingUpdate {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id])
+  status      String
+  location    String?
+  description String?
+  timestamp   DateTime
+  createdAt   DateTime @default(now())
+
+  // Every tracking update must belong to a tenant.
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([orderId])
+  @@index([timestamp])
+  @@index([tenantId]) // Added for query performance
+}

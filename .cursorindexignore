@@ -1,0 +1,9 @@
+# Include .env files even though they're in the default ignore list
+!*.env
+!*.env.local
+!*.env.development
+!*.env.production
+!*.env.test
+!*.env.development.local
+!*.env.production.local
+!*.env.test.local
