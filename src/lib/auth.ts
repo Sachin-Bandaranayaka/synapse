@@ -1,12 +1,8 @@
-// src/lib/auth.ts
-
 import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
 import { compare } from 'bcryptjs';
 import { getServerSession } from 'next-auth/next';
-
-const useSecureCookies = process.env.NEXTAUTH_URL?.startsWith("https://");
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -17,9 +13,7 @@ export const authOptions: AuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) { return null; }
         
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
@@ -29,18 +23,15 @@ export const authOptions: AuthOptions = {
         if (!user) { return null; }
 
         if (user.role !== 'SUPER_ADMIN' && !user.tenant.isActive) {
-          throw new Error('Your account has been deactivated. Please contact support.');
+          throw new Error('Your account has been deactivated.');
         }
 
         const isPasswordValid = await compare(credentials.password, user.password);
         if (!isPasswordValid) { return null; }
 
         return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          tenantId: user.tenantId,
+          id: user.id, email: user.email, name: user.name,
+          role: user.role, tenantId: user.tenantId,
         };
       }
     })
@@ -63,19 +54,18 @@ export const authOptions: AuthOptions = {
       return session;
     }
   },
-
-  // --- NEW COOKIE CONFIGURATION FOR PRODUCTION ---
+  
+  // --- FINAL & EXPLICIT COOKIE CONFIGURATION ---
+  useSecureCookies: true,
   cookies: {
     sessionToken: {
-      name: `${useSecureCookies ? '__Secure-' : ''}next-auth.session-token`,
+      name: `__Secure-next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: useSecureCookies,
-        // When deploying to production, you would need to set the domain.
-        // For a Vercel deployment, the Vercel domain is automatically used.
-        // domain: 'your-production-domain.com'
+        secure: true,
+        domain: 'jnexmultitenant.vercel.app', // Explicitly set the domain
       },
     },
   },
@@ -87,7 +77,6 @@ export const authOptions: AuthOptions = {
     strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development',
 };
 
 export async function getSession() {

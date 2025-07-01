@@ -1,5 +1,3 @@
-// src/middleware.ts
-
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -21,19 +19,11 @@ export async function middleware(request: NextRequest) {
     signInUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(signInUrl);
   }
-
-  // We are removing the database check from here.
-  // The rest of the logic can remain for basic role checks.
+  
+  // Basic role checks can remain
   const userRole = token.role;
   const isSuperAdminRoute = pathname.startsWith('/superadmin');
-
   if (isSuperAdminRoute && userRole !== 'SUPER_ADMIN') {
-    return NextResponse.redirect(new URL('/unauthorized', request.url));
-  }
-
-  const isAuthorizedRole = ['ADMIN', 'SUPER_ADMIN', 'TEAM_MEMBER'].includes(userRole);
-
-  if (!isAuthorizedRole) {
     return NextResponse.redirect(new URL('/unauthorized', request.url));
   }
   
