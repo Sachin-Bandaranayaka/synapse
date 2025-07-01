@@ -1,9 +1,11 @@
+// src/lib/auth.ts
+
 import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
 import { compare } from 'bcryptjs';
 import { getServerSession } from 'next-auth/next';
-import { Role } from '@prisma/client'; // Assuming Role is exported from your client
+import { Role } from '@prisma/client';
 
 const useSecureCookies = process.env.NEXTAUTH_URL?.startsWith("https://");
 
@@ -11,51 +13,51 @@ export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
-      },
+      credentials: { /* ... */ },
       async authorize(credentials) {
         console.log('[DEBUG] Authorize function started.');
 
-        if (!credentials?.email || !credentials?.password) {
-          console.log('[DEBUG] Missing credentials.');
+        if (!credentials?.email) {
+          console.log('[DEBUG] No email provided.');
           return null;
         }
         
-        console.log(`[DEBUG] Attempting to find user: ${credentials.email}`);
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-          include: { tenant: true }
-        });
+        try {
+          console.log(`[DEBUG] Database query started for user: ${credentials.email}`);
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            include: { tenant: true }
+          });
+          
+          // --- THIS IS THE CRITICAL LOG ---
+          // It shows us what the database returned.
+          console.log('[DEBUG] Database query finished. User object found:', user);
 
-        if (!user) {
-          console.log('[DEBUG] User not found in database.');
-          return null;
+          if (!user) {
+            console.log('[DEBUG] User not found in database.');
+            return null;
+          }
+
+          if (user.role !== 'SUPER_ADMIN' && !user.tenant.isActive) {
+            console.log('[DEBUG] Login rejected: Tenant is inactive.');
+            throw new Error('Your account has been deactivated.');
+          }
+
+          console.log('[DEBUG] Comparing password...');
+          const isPasswordValid = await compare(credentials.password!, user.password);
+
+          if (!isPasswordValid) {
+            console.log('[DEBUG] Password validation failed.');
+            return null;
+          }
+          
+          console.log('[DEBUG] Password is valid. Returning user object.');
+          return user; // Return the full user object
+
+        } catch (error) {
+            console.error('[DEBUG] An error occurred during authorization:', error);
+            return null;
         }
-        console.log(`[DEBUG] User found: ${user.email}, Tenant Active: ${user.tenant.isActive}`);
-
-        if (user.role !== 'SUPER_ADMIN' && !user.tenant.isActive) {
-          console.log('[DEBUG] Login rejected: Tenant is inactive.');
-          throw new Error('Your account has been deactivated.');
-        }
-
-        console.log('[DEBUG] Comparing password...');
-        const isPasswordValid = await compare(credentials.password, user.password);
-
-        if (!isPasswordValid) {
-          console.log('[DEBUG] Password validation failed.');
-          return null;
-        }
-        
-        console.log('[DEBUG] Password is valid. Returning user object.');
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          tenantId: user.tenantId,
-        };
       }
     })
   ],
@@ -110,12 +112,8 @@ export const authOptions: AuthOptions = {
     },
   },
   
-  pages: {
-    signIn: '/auth/signin',
-  },
-  session: {
-    strategy: 'jwt',
-  },
+  pages: { signIn: '/auth/signin' },
+  session: { strategy: 'jwt' },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
