@@ -13,7 +13,12 @@ export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
-      credentials: { /* ... */ },
+      // --- THIS SECTION WAS MISSING ---
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' }
+      },
+      // ---------------------------------
       async authorize(credentials) {
         console.log('[DEBUG] Authorize function started.');
 
@@ -29,8 +34,6 @@ export const authOptions: AuthOptions = {
             include: { tenant: true }
           });
           
-          // --- THIS IS THE CRITICAL LOG ---
-          // It shows us what the database returned.
           console.log('[DEBUG] Database query finished. User object found:', user);
 
           if (!user) {
@@ -52,7 +55,7 @@ export const authOptions: AuthOptions = {
           }
           
           console.log('[DEBUG] Password is valid. Returning user object.');
-          return user; // Return the full user object
+          return user;
 
         } catch (error) {
             console.error('[DEBUG] An error occurred during authorization:', error);
@@ -79,7 +82,6 @@ export const authOptions: AuthOptions = {
       return session;
     }
   },
-  
   cookies: {
     sessionToken: {
       name: `${useSecureCookies ? '__Secure-' : ''}next-auth.session-token`,
@@ -91,29 +93,13 @@ export const authOptions: AuthOptions = {
         domain: useSecureCookies ? 'jnexmultitenant.vercel.app' : undefined,
       },
     },
-    callbackUrl: {
-        name: `${useSecureCookies ? '__Secure-' : ''}next-auth.callback-url`,
-        options: {
-          sameSite: 'lax',
-          path: '/',
-          secure: useSecureCookies,
-          domain: useSecureCookies ? 'jnexmultitenant.vercel.app' : undefined,
-        },
-    },
-    csrfToken: {
-        name: `${useSecureCookies ? '__Host-' : ''}next-auth.csrf-token`,
-        options: {
-          httpOnly: true,
-          sameSite: 'lax',
-          path: '/',
-          secure: useSecureCookies,
-          domain: useSecureCookies ? 'jnexmultitenant.vercel.app' : undefined,
-        },
-    },
   },
-  
-  pages: { signIn: '/auth/signin' },
-  session: { strategy: 'jwt' },
+  pages: {
+    signIn: '/auth/signin',
+  },
+  session: {
+    strategy: 'jwt',
+  },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
