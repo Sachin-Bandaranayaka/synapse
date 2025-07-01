@@ -1,13 +1,12 @@
 // src/lib/auth.ts
 
 import { AuthOptions } from 'next-auth';
-import { Session } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
 import { compare } from 'bcryptjs';
 import { getServerSession } from 'next-auth/next';
-import { Role } from '@prisma/client';
+
+const useSecureCookies = process.env.NEXTAUTH_URL?.startsWith("https://");
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -21,36 +20,21 @@ export const authOptions: AuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
-
-        // Fetch the user AND their related tenant information in one query
+        
         const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
-          },
-          include: {
-            tenant: true, // <-- Include the tenant data
-          }
+          where: { email: credentials.email },
+          include: { tenant: true }
         });
 
-        if (!user) {
-          return null;
-        }
+        if (!user) { return null; }
 
-        // --- NEW SECURITY CHECK ---
-        // Check if the user's tenant is active.
-        // We allow SUPER_ADMIN to log in regardless of tenant status.
         if (user.role !== 'SUPER_ADMIN' && !user.tenant.isActive) {
-          // Throw an error that NextAuth will catch and display on the sign-in page
           throw new Error('Your account has been deactivated. Please contact support.');
         }
 
         const isPasswordValid = await compare(credentials.password, user.password);
+        if (!isPasswordValid) { return null; }
 
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        // Return the full user object including tenantId
         return {
           id: user.id,
           email: user.email,
@@ -65,7 +49,7 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role; // Remove the cast to Role type
+        token.role = user.role;
         token.tenantId = user.tenantId;
       }
       return token;
@@ -79,12 +63,28 @@ export const authOptions: AuthOptions = {
       return session;
     }
   },
+
+  // --- NEW COOKIE CONFIGURATION FOR PRODUCTION ---
+  cookies: {
+    sessionToken: {
+      name: `${useSecureCookies ? '__Secure-' : ''}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: useSecureCookies,
+        // When deploying to production, you would need to set the domain.
+        // For a Vercel deployment, the Vercel domain is automatically used.
+        // domain: 'your-production-domain.com'
+      },
+    },
+  },
+  
   pages: {
     signIn: '/auth/signin',
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
