@@ -1,6 +1,9 @@
+// src/components/auth/signin-form.tsx
+
 'use client';
 
-import { signIn, useSearchParams } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation'; // <-- Corrected import
 import { useState } from 'react';
 
 export function SignInForm() {
@@ -18,9 +21,8 @@ export function SignInForm() {
       email,
       password,
       redirect: true,
-      callbackUrl: '/dashboard', // More direct callback URL
+      callbackUrl: '/dashboard',
     });
-    // The redirect will interrupt this flow, so we don't need to set loading to false
   };
 
   return (
