@@ -37,7 +37,7 @@ export function TrackingButton({ orderId, hasTracking }: TrackingButtonProps) {
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="rounded-lg bg-gray-800 p-4 text-center text-sm text-gray-400 ring-1 ring-gray-700"
+                className="rounded-lg bg-gray-800 p-4 text-center text-sm text-gray-400 ring-1 ring-white/10"
             >
                 No tracking information available
             </motion.div>
@@ -51,7 +51,7 @@ export function TrackingButton({ orderId, hasTracking }: TrackingButtonProps) {
                 whileTap={{ scale: 0.98 }}
                 onClick={checkTracking}
                 disabled={isLoading}
-                className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-medium text-white shadow-lg transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-medium text-white ring-1 ring-white/10 transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <span className="flex items-center justify-center">
                     {isLoading ? (

@@ -32,18 +32,18 @@ export function UsersClient({ initialUsers }: { initialUsers: User[] }) {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 bg-gray-900">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">Users</h1>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <h1 className="text-2xl font-semibold text-white">Users</h1>
+                    <p className="mt-2 text-sm text-gray-400">
                         Manage users and their permissions in the system.
                     </p>
                 </div>
                 <AddUserButton onUserAdded={handleUserChange} />
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-gray-800 rounded-lg ring-1 ring-white/10 overflow-hidden">
                 <UserList users={users} />
             </div>
         </div>

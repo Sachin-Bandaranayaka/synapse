@@ -82,40 +82,40 @@ export default function SalesCharts({ startDate, endDate }: SalesChartsProps) {
   return (
     <div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-gray-800 overflow-hidden ring-1 ring-white/10 rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">
+            <dt className="text-sm font-medium text-gray-400 truncate">
               Total Orders
             </dt>
-            <dd className="mt-1 text-3xl font-semibold text-gray-900">
+            <dd className="mt-1 text-3xl font-semibold text-white">
               {data.totalOrders}
             </dd>
           </div>
         </div>
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-gray-800 overflow-hidden ring-1 ring-white/10 rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">
+            <dt className="text-sm font-medium text-gray-400 truncate">
               Total Revenue
             </dt>
-            <dd className="mt-1 text-3xl font-semibold text-gray-900">
+            <dd className="mt-1 text-3xl font-semibold text-white">
               LKR {(data?.totalRevenue ?? 0).toFixed(2)}
             </dd>
           </div>
         </div>
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-gray-800 overflow-hidden ring-1 ring-white/10 rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">
+            <dt className="text-sm font-medium text-gray-400 truncate">
               Average Order Value
             </dt>
-            <dd className="mt-1 text-3xl font-semibold text-gray-900">
+            <dd className="mt-1 text-3xl font-semibold text-white">
               LKR {(data?.averageOrderValue ?? 0).toFixed(2)}
             </dd>
           </div>
         </div>
       </div>
 
-      <div className="mt-8 bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900">Daily Revenue</h3>
+      <div className="mt-8 bg-gray-800 ring-1 ring-white/10 rounded-lg p-6">
+        <h3 className="text-lg font-medium text-white">Daily Revenue</h3>
         <div className="mt-4" style={{ height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart

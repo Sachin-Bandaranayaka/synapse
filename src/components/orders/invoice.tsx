@@ -56,13 +56,13 @@ export function Invoice({
     const total = Math.max(0, subtotal - discount);
 
     const commonInvoice = (
-        <div className="w-full px-2 bg-white text-black">
+        <div className="w-full px-2 bg-gray-800 text-white">
             {/* Header with From and To addresses side by side */}
             <div className="flex justify-between mb-2">
                 {/* From address (left side) */}
                 <div className="text-left">
-                    <h1 className={`${isMultiPrint ? 'text-[9pt]' : 'text-[12pt]'} font-bold leading-tight text-black`}>{companyInfo.name}</h1>
-                    <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} text-gray-600 leading-tight`}>
+                    <h1 className={`${isMultiPrint ? 'text-[9pt]' : 'text-[12pt]'} font-bold leading-tight text-white`}>{companyInfo.name}</h1>
+                    <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} text-gray-400 leading-tight`}>
                         <p>{companyInfo.address}</p>
                         <p>Tel: {companyInfo.phone}</p>
                     </div>
@@ -76,7 +76,7 @@ export function Invoice({
                     {/* Display invoice number when in batch print mode */}
                     {isMultiPrint && invoiceNumber !== undefined && (
                         <div className="mb-1">
-                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-black text-white font-bold text-[10pt]">
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-black font-bold text-[10pt]">
                                 {invoiceNumber}
                             </span>
                         </div>
@@ -86,7 +86,7 @@ export function Invoice({
                         <p className="font-bold">{order.customerAddress}</p>
                         <p>Tel: <span className="font-bold">{order.customerPhone}</span></p>
                         {order.customerSecondPhone && (
-                            <p>Secondary Tel: <span className="font-bold text-blue-600">{order.customerSecondPhone}</span></p>
+                            <p>Secondary Tel: <span className="font-bold text-blue-400">{order.customerSecondPhone}</span></p>
                         )}
                     </div>
                 </div>
@@ -95,7 +95,7 @@ export function Invoice({
             {/* Order Details */}
             <table className={`w-full ${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} mb-0.5 leading-tight`}>
                 <thead>
-                    <tr className="border-t border-b border-gray-300">
+                    <tr className="border-t border-b border-gray-700">
                         <th className="py-0.5 text-left">Item</th>
                         <th className="py-0.5 text-right">Qty</th>
                         <th className="py-0.5 text-right">Amount</th>
@@ -125,7 +125,7 @@ export function Invoice({
                             </td>
                         </tr>
                     )}
-                    <tr className="border-t border-gray-300">
+                    <tr className="border-t border-gray-700">
                         <td colSpan={2} className="py-0.5 text-right font-bold">Total:</td>
                         <td className="py-0.5 text-right font-bold">
                             {new Intl.NumberFormat('en-LK', {
@@ -157,7 +157,7 @@ export function Invoice({
 
             {/* Notes */}
             {order.notes && (
-                <div className="text-left my-1 border-t border-gray-300 pt-1">
+                <div className="text-left my-1 border-t border-gray-700 pt-1">
                     <p className={`${isMultiPrint ? 'text-[7pt]' : 'text-[8pt]'} font-medium`}>Notes:</p>
                     <p className={`${isMultiPrint ? 'text-[7pt]' : 'text-[8pt]'}`}>{order.notes}</p>
                 </div>
@@ -178,7 +178,7 @@ export function Invoice({
 
     // For single invoice print
     return (
-        <div className="max-w-[80mm] mx-auto p-2 bg-white text-black">
+        <div className="max-w-[80mm] mx-auto p-2 bg-gray-800 text-white">
             {commonInvoice}
             {showPrintControls && !isMultiPrint && (
                 <div className="mt-4 print:hidden">

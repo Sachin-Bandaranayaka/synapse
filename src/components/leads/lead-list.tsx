@@ -128,8 +128,8 @@ export function LeadList() {
   if (leads.length === 0) {
     return (
       <div className="text-center py-12">
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No leads</h3>
-        <p className="mt-1 text-sm text-gray-500">Get started by creating a new lead.</p>
+        <h3 className="mt-2 text-sm font-medium text-white">No leads</h3>
+        <p className="mt-1 text-sm text-gray-400">Get started by creating a new lead.</p>
       </div>
     );
   }
@@ -138,26 +138,26 @@ export function LeadList() {
     <div className="flex flex-col">
       <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-          <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="ring-1 ring-white/10 overflow-hidden border-b border-gray-700 sm:rounded-lg">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-900">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Name
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Contact
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Address
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Product
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Status
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Created
                   </th>
                   <th scope="col" className="relative px-6 py-3">
@@ -165,35 +165,35 @@ export function LeadList() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-gray-800 divide-y divide-gray-700">
                 {leads.map((lead) => (
                   <tr key={lead.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{lead.csvData.name}</div>
+                      <div className="text-sm font-medium text-white">{lead.csvData.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lead.csvData.phone}</div>
+                      <div className="text-sm text-white">{lead.csvData.phone}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lead.csvData.address}</div>
+                      <div className="text-sm text-white">{lead.csvData.address}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lead.product.name}</div>
-                      <div className="text-sm text-gray-500">{lead.product.code}</div>
+                      <div className="text-sm text-white">{lead.product.name}</div>
+                      <div className="text-sm text-gray-400">{lead.product.code}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${lead.status === 'CONVERTED'
-                        ? 'bg-green-100 text-green-800'
+                        ? 'bg-green-900/30 text-green-300'
                         : lead.status === 'REJECTED'
-                          ? 'bg-red-100 text-red-800'
+                          ? 'bg-red-900/30 text-red-300'
                           : lead.status === 'NO_ANSWER'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-blue-100 text-blue-800'
+                            ? 'bg-yellow-900/30 text-yellow-300'
+                            : 'bg-blue-900/30 text-blue-300'
                         }`}>
                         {lead.status.toLowerCase()}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                       {format(new Date(lead.createdAt), 'MMM d, yyyy')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -207,7 +207,7 @@ export function LeadList() {
                           </button>
                           <button
                             onClick={() => handleConvertToOrder(lead)}
-                            className="text-indigo-600 hover:text-indigo-900"
+                            className="text-indigo-400 hover:text-indigo-300"
                           >
                             Convert to Order
                           </button>

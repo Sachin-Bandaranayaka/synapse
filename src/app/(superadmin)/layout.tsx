@@ -1,8 +1,9 @@
 // src/app/(superadmin)/layout.tsx
 
 import Link from 'next/link';
-import { HomeIcon, UsersIcon, CogIcon } from '@heroicons/react/24/outline';
+// import { HomeIcon, UsersIcon, CogIcon } from '@heroicons/react/24/outline';
 import { LogoutButton } from './superadmin/logout-button'; // <-- Import the new component
+import { HomeIcon, UsersIcon, CogIcon, ShareIcon } from '@heroicons/react/24/outline'; // Add ShareIcon
 
 function NavLink({ href, icon, children }: { href: string; icon: React.ReactNode; children: React.ReactNode; }) {
     return (
@@ -33,6 +34,10 @@ export default function SuperAdminLayout({
                     </NavLink>
                     <NavLink href="/superadmin/users" icon={<UsersIcon className="h-6 w-6" />}>
                         Users
+                    </NavLink>
+                    {/* --- ADD THIS NEW LINK --- */}
+                    <NavLink href="/superadmin/hierarchy" icon={<ShareIcon className="h-6 w-6" />}>
+                        Hierarchy
                     </NavLink>
                     <NavLink href="/superadmin/settings" icon={<CogIcon className="h-6 w-6" />}>
                         Settings

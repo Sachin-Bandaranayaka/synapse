@@ -45,13 +45,13 @@ export function TrackingHistory({ updates, trackingNumber, provider }: TrackingH
     return (
         <div className="flow-root">
             <div className="flex justify-between items-center mb-4">
-                <h4 className="text-base font-medium text-gray-900">Tracking Updates</h4>
+                <h4 className="text-base font-medium text-white">Tracking Updates</h4>
                 {getTrackingUrl() && (
                     <a
                         href={getTrackingUrl()}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-indigo-600 hover:text-indigo-500"
+                        className="text-sm text-indigo-400 hover:text-indigo-300"
                     >
                         Track on {provider.split('_')[0]} →
                     </a>
@@ -63,15 +63,15 @@ export function TrackingHistory({ updates, trackingNumber, provider }: TrackingH
                         <div className="relative pb-8">
                             {idx !== updates.length - 1 && (
                                 <span
-                                    className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                                    className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-700"
                                     aria-hidden="true"
                                 />
                             )}
                             <div className="relative flex space-x-3">
                                 <div>
-                                    <span className={`h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white ${idx === 0 ? 'bg-indigo-500' : 'bg-gray-300'}`}>
+                                    <span className={`h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-gray-900 ${idx === 0 ? 'bg-indigo-500' : 'bg-gray-700'}`}>
                                         <svg
-                                            className={`h-5 w-5 ${idx === 0 ? 'text-white' : 'text-gray-500'}`}
+                                            className={`h-5 w-5 ${idx === 0 ? 'text-white' : 'text-gray-400'}`}
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -87,19 +87,19 @@ export function TrackingHistory({ updates, trackingNumber, provider }: TrackingH
                                 </div>
                                 <div className="flex min-w-0 flex-1 justify-between space-x-4">
                                     <div>
-                                        <p className="text-sm text-gray-900">
+                                        <p className="text-sm text-white">
                                             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium mr-2 ${getStatusColor(update.status)}`}>
                                                 {update.status.replace('_', ' ')}
                                             </span>
                                             {update.description || update.location || 'Status updated'}
                                         </p>
                                         {update.location && (
-                                            <p className="mt-0.5 text-sm text-gray-500">
+                                            <p className="mt-0.5 text-sm text-gray-400">
                                                 Location: {update.location}
                                             </p>
                                         )}
                                     </div>
-                                    <div className="whitespace-nowrap text-right text-sm text-gray-500">
+                                    <div className="whitespace-nowrap text-right text-sm text-gray-400">
                                         <time dateTime={update.timestamp.toISOString()}>
                                             {format(new Date(update.timestamp), 'PPp')}
                                         </time>

@@ -1,3 +1,5 @@
+// src/app/layout.tsx
+
 import { AuthProvider } from '@/components/auth/auth-provider';
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
@@ -6,7 +8,7 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const viewport: Viewport = {
-  themeColor: '#111827',
+  themeColor: '#111827', // Dark theme color
   width: 'device-width',
   initialScale: 1
 };
@@ -17,13 +19,6 @@ export const metadata: Metadata = {
     default: 'J-nex Holdings Sales Management'
   },
   description: 'Sales management system for J-nex Holdings',
-  applicationName: 'J-nex Holdings',
-  authors: [{ name: 'J-nex Holdings Team' }],
-  keywords: ['sales', 'management', 'inventory', 'leads', 'orders'],
-  robots: {
-    index: false,
-    follow: false
-  }
 };
 
 export default function RootLayout({
@@ -32,8 +27,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
+    // Add the "dark" class here to enable dark mode by default
+    <html lang="en" className="h-full dark">
       <body className={`${inter.className} h-full`}>
+        {/* The ThemeProvider is no longer needed */}
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

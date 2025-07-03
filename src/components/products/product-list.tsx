@@ -139,18 +139,18 @@ export function ProductList({ products }: ProductListProps) {
               transition={{ duration: 0.3 }}
               className="hover:bg-gray-700/50"
             >
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">
                 {product.code}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex flex-col">
-                  <div className="text-sm font-medium text-gray-100">{product.name}</div>
+                  <div className="text-sm font-medium text-white">{product.name}</div>
                   {product.description && (
                     <div className="text-sm text-gray-400">{product.description}</div>
                   )}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-300">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-100">
                 {new Intl.NumberFormat('en-LK', {
                   style: 'currency',
                   currency: 'LKR'

@@ -71,7 +71,7 @@ export function CSVUpload({ onUploadComplete }: CSVUploadProps) {
       </div>
       <div
         className={`border-2 border-dashed rounded-lg p-8 text-center ${
-          isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
+          isDragging ? 'border-indigo-500 bg-gray-700' : 'border-gray-600'
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -93,7 +93,7 @@ export function CSVUpload({ onUploadComplete }: CSVUploadProps) {
               />
             </svg>
           </div>
-          <div className="text-gray-600">
+          <div className="text-gray-400">
             {isProcessing ? (
               'Processing...'
             ) : (

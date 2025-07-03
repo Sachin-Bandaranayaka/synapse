@@ -45,14 +45,14 @@ export function BulkOperations() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-gray-100">Bulk Operations</h2>
+        <h2 className="text-lg font-medium text-white">Bulk Operations</h2>
       </div>
 
       <div className="flex items-center space-x-4">
         <select
           value={selectedOperation}
           onChange={handleOperationChange}
-          className="block w-64 rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="block w-64 rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         >
           <option key="empty" value="">Select an operation</option>
           <option key="update-stock" value="update-stock">Update Stock Levels</option>
@@ -65,7 +65,7 @@ export function BulkOperations() {
           whileTap={{ scale: 0.98 }}
           onClick={handleExecute}
           disabled={isLoading || !selectedOperation}
-          className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <>

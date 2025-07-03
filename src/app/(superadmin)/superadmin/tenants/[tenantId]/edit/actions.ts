@@ -7,34 +7,38 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-// Zod schema now includes email
 const UpdateTenantSchema = z.object({
   name: z.string().min(3, 'Tenant name must be at least 3 characters.'),
-  email: z.string().email('Please enter a valid email address.'),
+  email: z.string().email('Please enter a valid email.'),
+  businessName: z.string().optional(),
+  logoUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  // Add new color fields to validation
+  backgroundColor: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, { message: "Must be a valid hex color code."}).optional().or(z.literal('')),
+  cardColor: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, { message: "Must be a valid hex color code."}).optional().or(z.literal('')),
+  fontColor: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, { message: "Must be a valid hex color code."}).optional().or(z.literal('')),
 });
 
-// Server action to update the tenant and its admin user
 export async function updateTenant(tenantId: string, adminUserId: string, formData: FormData) {
-  const validatedFields = UpdateTenantSchema.safeParse({
-    name: formData.get('name'),
-    email: formData.get('email'),
-  });
+  const validatedFields = UpdateTenantSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
+    return { errors: validatedFields.error.flatten().fieldErrors };
   }
-
-  // This was the fix for the typo. It's now `validatedFields`.
-  const { name, email } = validatedFields.data;
+  
+  const { name, email, ...brandingSettings } = validatedFields.data;
 
   try {
-    // Use a transaction to update both the tenant and the user safely
     await prisma.$transaction([
       prisma.tenant.update({
         where: { id: tenantId },
-        data: { name },
+        data: { 
+          name,
+          businessName: brandingSettings.businessName || null,
+          logoUrl: brandingSettings.logoUrl || null,
+          backgroundColor: brandingSettings.backgroundColor || null,
+          cardColor: brandingSettings.cardColor || null,
+          fontColor: brandingSettings.fontColor || null,
+         },
       }),
       prisma.user.update({
         where: { id: adminUserId },
@@ -42,13 +46,12 @@ export async function updateTenant(tenantId: string, adminUserId: string, formDa
       })
     ]);
   } catch (error) {
-    // This will catch errors like a duplicate email address
     if ((error as any).code === 'P2002') {
-        return { message: 'This email address is already in use by another account.' };
+        return { message: 'This email address is already in use.' };
     }
     return { message: 'Database Error: Failed to update tenant.' };
   }
 
-  revalidatePath('/superadmin');
-  redirect('/superadmin');
+  revalidatePath('/superadmin/users');
+  redirect('/superadmin/users');
 }

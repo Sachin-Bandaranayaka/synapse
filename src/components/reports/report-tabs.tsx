@@ -78,7 +78,7 @@ export function ReportTabs({ initialData }: ReportTabsProps) {
                         id="startDate"
                         value={dateRange.startDate}
                         onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                        className="rounded-md border-gray-700 bg-gray-700 text-gray-200 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="rounded-md border-gray-700 bg-gray-700 text-gray-100 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                 </div>
                 <div className="flex items-center space-x-2">
@@ -90,7 +90,7 @@ export function ReportTabs({ initialData }: ReportTabsProps) {
                         id="endDate"
                         value={dateRange.endDate}
                         onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                        className="rounded-md border-gray-700 bg-gray-700 text-gray-200 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="rounded-md border-gray-700 bg-gray-700 text-gray-100 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                 </div>
             </div>

@@ -64,7 +64,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+        <label htmlFor="name" className="block text-sm font-medium text-gray-400">
           Name
         </label>
         <input
@@ -72,13 +72,13 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           id="name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           required
         />
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-400">
           Email
         </label>
         <input
@@ -86,13 +86,13 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           id="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           required
         />
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+        <label htmlFor="password" className="block text-sm font-medium text-gray-400">
           New Password (optional)
         </label>
         <input
@@ -100,20 +100,20 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           id="password"
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           placeholder="Leave blank to keep current password"
         />
       </div>
 
       <div>
-        <label htmlFor="role" className="block text-sm font-medium text-gray-300">
+        <label htmlFor="role" className="block text-sm font-medium text-gray-400">
           Role
         </label>
         <select
           id="role"
           value={formData.role}
           onChange={(e) => setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'TEAM_MEMBER' })}
-          className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
         >
           <option key="team-member" value="TEAM_MEMBER">Team Member</option>
           <option key="admin" value="ADMIN">Admin</option>
@@ -132,7 +132,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           onClick={onCancel}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="inline-flex items-center rounded-md border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          className="inline-flex items-center rounded-md border border-gray-700 px-4 py-2 text-sm font-medium text-gray-400 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
           Cancel
         </motion.button>
@@ -141,7 +141,7 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           disabled={isLoading}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+          className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
         >
           {isLoading ? (
             <>

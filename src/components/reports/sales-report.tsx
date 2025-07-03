@@ -131,27 +131,27 @@ export function SalesReport({ startDate, endDate, totalOrders }: SalesReportProp
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                     <div className="text-sm font-medium text-gray-400">Total Orders</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-100">{totalOrders}</div>
+                    <div className="mt-2 text-3xl font-semibold text-white">{totalOrders}</div>
                 </div>
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                     <div className="text-sm font-medium text-gray-400">Total Revenue</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-100">
+                    <div className="mt-2 text-3xl font-semibold text-white">
                         LKR {data.totalRevenue.toLocaleString()}
                     </div>
                 </div>
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                     <div className="text-sm font-medium text-gray-400">Average Order Value</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-100">
+                    <div className="mt-2 text-3xl font-semibold text-white">
                         LKR {data.averageOrderValue.toLocaleString()}
                     </div>
                 </div>
             </div>
 
             {/* Revenue Chart */}
-            <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
-                <h3 className="text-lg font-medium text-gray-100">Daily Revenue</h3>
+            <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
+                <h3 className="text-lg font-medium text-white">Daily Revenue</h3>
                 <div className="mt-4" style={{ height: 400 }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart

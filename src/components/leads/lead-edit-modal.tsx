@@ -69,13 +69,13 @@ export function LeadEditModal({ isOpen, onClose, lead, products }: LeadEditModal
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
                     >
-                        <div className="relative w-full max-w-3xl rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-gray-700 overflow-y-auto max-h-[90vh]">
+                        <div className="relative w-full max-w-3xl rounded-lg bg-gray-800 p-6 ring-1 ring-white/10 overflow-y-auto max-h-[90vh]">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-xl font-semibold text-gray-100">Edit Lead</h2>
+                                <h2 className="text-xl font-semibold text-white">Edit Lead</h2>
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="text-gray-400 hover:text-gray-200"
+                                    className="text-gray-400 hover:text-gray-100"
                                 >
                                     <XMarkIcon className="h-6 w-6" />
                                 </button>

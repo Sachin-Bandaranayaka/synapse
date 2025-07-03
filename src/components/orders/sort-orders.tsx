@@ -53,7 +53,7 @@ export function SortOrders() {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-300 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-gray-700"
+                className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-100 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-gray-600"
             >
                 <span>Sort: {currentSortOption.label}</span>
                 <svg
@@ -68,7 +68,7 @@ export function SortOrders() {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-md shadow-lg z-10">
+                <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-md ring-1 ring-white/10 z-10">
                     <ul className="py-1">
                         {sortOptions.map((option) => (
                             <li key={`${option.value}:${option.direction}`}>

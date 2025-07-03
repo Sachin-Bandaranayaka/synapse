@@ -44,26 +44,26 @@ export function LeadPreview({ parseResult, onConfirm }: LeadPreviewProps) {
         </div>
       )}
 
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul className="divide-y divide-gray-200">
+      <div className="bg-gray-800 ring-1 ring-white/10 overflow-hidden sm:rounded-md">
+        <ul className="divide-y divide-gray-700">
           {parseResult.validLeads.map((lead, index) => (
             <li key={index} className="px-4 py-4 sm:px-6">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-indigo-600 truncate">
+                <div className="text-sm font-medium text-indigo-400 truncate">
                   {lead.customer_name}
                 </div>
                 <div className="ml-2 flex-shrink-0 flex">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-900/30 text-green-300">
                     Valid
                   </span>
                 </div>
               </div>
               <div className="mt-2 sm:flex sm:justify-between">
                 <div className="sm:flex">
-                  <div className="mr-6 flex items-center text-sm text-gray-500">
+                  <div className="mr-6 flex items-center text-sm text-gray-400">
                     <span className="truncate">{lead.phone}</span>
                   </div>
-                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                  <div className="mt-2 flex items-center text-sm text-gray-400 sm:mt-0">
                     <span className="truncate">{lead.product_code}</span>
                   </div>
                 </div>
@@ -74,11 +74,11 @@ export function LeadPreview({ parseResult, onConfirm }: LeadPreviewProps) {
       </div>
 
       <div className="flex justify-end space-x-4">
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-400 text-sm">{error}</p>}
         <button
           onClick={handleConfirm}
           disabled={isSubmitting || parseResult.validLeads.length === 0}
-          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+          className="inline-flex justify-center py-2 px-4 border border-transparent ring-1 ring-white/10 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
           {isSubmitting ? 'Importing...' : 'Import Leads'}
         </button>

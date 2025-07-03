@@ -146,21 +146,21 @@ export function LeadReport({ startDate, endDate, totalLeads }: LeadReportProps) 
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                     <div className="text-sm font-medium text-gray-400">Total Leads</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-100">
+                    <div className="mt-2 text-3xl font-semibold text-white">
                         {totalLeads}
                     </div>
                 </div>
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                     <div className="text-sm font-medium text-gray-400">Conversion Rate</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-100">
+                    <div className="mt-2 text-3xl font-semibold text-white">
                         {((data?.conversionRate || 0) * 100).toFixed(1)}%
                     </div>
                 </div>
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                     <div className="text-sm font-medium text-gray-400">Avg. Response Time</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-100">
+                    <div className="mt-2 text-3xl font-semibold text-white">
                         {(data?.averageResponseTime || 0).toFixed(1)} hours
                     </div>
                 </div>
@@ -169,8 +169,8 @@ export function LeadReport({ startDate, endDate, totalLeads }: LeadReportProps) 
             {/* Charts */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Daily Leads */}
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
-                    <h3 className="text-lg font-medium text-gray-100">Daily Leads</h3>
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
+                    <h3 className="text-lg font-medium text-white">Daily Leads</h3>
                     <div className="mt-4" style={{ height: 300 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={data?.dailyLeads || []}>
@@ -210,8 +210,8 @@ export function LeadReport({ startDate, endDate, totalLeads }: LeadReportProps) 
                 </div>
 
                 {/* Leads by Status */}
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
-                    <h3 className="text-lg font-medium text-gray-100">Leads by Status</h3>
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
+                    <h3 className="text-lg font-medium text-white">Leads by Status</h3>
                     <div className="mt-4" style={{ height: 300 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>

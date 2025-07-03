@@ -49,16 +49,16 @@ export function RoyalExpressStateChecker() {
                     </Button>
 
                     {error && (
-                        <div className="p-3 bg-red-50 text-red-700 rounded-md">
+                        <div className="p-3 bg-red-900/50 text-red-400 rounded-md">
                             <p className="font-medium">Error:</p>
                             <p>{error}</p>
                         </div>
                     )}
 
                     {states.length > 0 && (
-                        <div className="p-3 bg-gray-50 rounded-md">
+                        <div className="p-3 bg-gray-800 rounded-md">
                             <p className="font-medium mb-2">Valid State Names:</p>
-                            <ul className="list-disc pl-5 text-sm">
+                            <ul className="list-disc pl-5 text-sm text-gray-300">
                                 {states.map((state) => (
                                     <li key={state}>{state}</li>
                                 ))}

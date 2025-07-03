@@ -42,12 +42,12 @@ export function LeadActions() {
         <>
             {showCreateForm && (
                 <div className="fixed inset-0 bg-gray-900/75 flex items-center justify-center p-4 z-50">
-                    <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full ring-1 ring-gray-700">
+                    <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full ring-1 ring-white/10">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-semibold text-gray-100">Add New Lead</h2>
+                            <h2 className="text-xl font-semibold text-white">Add New Lead</h2>
                             <button
                                 onClick={() => setShowCreateForm(false)}
-                                className="text-gray-400 hover:text-gray-300"
+                                className="text-gray-400 hover:text-gray-100"
                             >
                                 <span className="sr-only">Close</span>
                                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

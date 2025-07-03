@@ -140,19 +140,19 @@ export function ProductReport({ startDate, endDate, totalProducts }: ProductRepo
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                     <div className="text-sm font-medium text-gray-400">Total Products</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-100">{totalProducts}</div>
+                    <div className="mt-2 text-3xl font-semibold text-white">{totalProducts}</div>
                 </div>
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                     <div className="text-sm font-medium text-gray-400">Total Revenue</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-100">
+                    <div className="mt-2 text-3xl font-semibold text-white">
                         LKR {(data?.totalRevenue || 0).toLocaleString()}
                     </div>
                 </div>
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                     <div className="text-sm font-medium text-gray-400">Average Stock Level</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-100">
+                    <div className="mt-2 text-3xl font-semibold text-white">
                         {(data?.averageStock || 0).toLocaleString()}
                     </div>
                 </div>
@@ -161,8 +161,8 @@ export function ProductReport({ startDate, endDate, totalProducts }: ProductRepo
             {/* Charts */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Top Products by Revenue */}
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
-                    <h3 className="text-lg font-medium text-gray-100">Top Products by Revenue</h3>
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
+                    <h3 className="text-lg font-medium text-white">Top Products by Revenue</h3>
                     <div className="mt-4" style={{ height: 300 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data?.topProducts || []}>
@@ -196,8 +196,8 @@ export function ProductReport({ startDate, endDate, totalProducts }: ProductRepo
                 </div>
 
                 {/* Stock Levels */}
-                <div className="rounded-lg bg-gray-700/50 p-6 ring-1 ring-gray-600">
-                    <h3 className="text-lg font-medium text-gray-100">Stock Levels</h3>
+                <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
+                    <h3 className="text-lg font-medium text-white">Stock Levels</h3>
                     <div className="mt-4" style={{ height: 300 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>

@@ -48,7 +48,7 @@ export default async function NewLeadPage() {
                 </div>
             </div>
 
-            <div className="rounded-lg bg-white overflow-hidden shadow">
+            <div className="rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
                 <div className="px-6 py-5">
                     <LeadForm products={products} />
                 </div>

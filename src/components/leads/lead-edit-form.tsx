@@ -128,7 +128,7 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-400">
                         Name
                     </label>
                     <input
@@ -136,13 +136,13 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         id="name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-400">
                         Phone
                     </label>
                     <input
@@ -150,13 +150,13 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         id="phone"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="secondPhone" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="secondPhone" className="block text-sm font-medium text-gray-400">
                         Second Phone (Optional)
                     </label>
                     <input
@@ -164,12 +164,12 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         id="secondPhone"
                         value={formData.secondPhone || ''}
                         onChange={(e) => setFormData({ ...formData, secondPhone: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-400">
                         Email (Optional)
                     </label>
                     <input
@@ -177,12 +177,12 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         id="email"
                         value={formData.email || ''}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value || null })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-400">
                         City
                     </label>
                     <input
@@ -190,12 +190,12 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         id="city"
                         value={formData.city}
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                 </div>
 
                 <div className="sm:col-span-2">
-                    <label htmlFor="address" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="address" className="block text-sm font-medium text-gray-400">
                         Address
                     </label>
                     <input
@@ -203,13 +203,13 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         id="address"
                         value={formData.address}
                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="source" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="source" className="block text-sm font-medium text-gray-400">
                         Source
                     </label>
                     <input
@@ -217,19 +217,19 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         id="source"
                         value={formData.source}
                         onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="product" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="product" className="block text-sm font-medium text-gray-400">
                         Product
                     </label>
                     <select
                         id="product"
                         value={formData.productCode}
                         onChange={(e) => setFormData({ ...formData, productCode: e.target.value })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
                     >
                         <option value="">Select a product</option>
@@ -242,7 +242,7 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                 </div>
 
                 <div>
-                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-400">
                         Quantity
                     </label>
                     <input
@@ -251,13 +251,13 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         min="1"
                         value={formData.quantity}
                         onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="discount" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="discount" className="block text-sm font-medium text-gray-400">
                         Discount
                     </label>
                     <input
@@ -266,12 +266,12 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         min="0"
                         value={formData.discount}
                         onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                 </div>
 
                 <div className="sm:col-span-2">
-                    <label htmlFor="notes" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="notes" className="block text-sm font-medium text-gray-400">
                         Notes (Optional)
                     </label>
                     <textarea
@@ -279,7 +279,7 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                         value={formData.notes || ''}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                         rows={3}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     />
                 </div>
             </div>
@@ -296,7 +296,7 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                     onClick={onCancel}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="inline-flex items-center rounded-md border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    className="inline-flex items-center rounded-md border border-gray-700 px-4 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                     Cancel
                 </motion.button>
@@ -305,7 +305,7 @@ export function LeadEditForm({ lead, products, onSuccess, onCancel }: LeadEditFo
                     disabled={isLoading}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+                    className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                     {isLoading ? (
                         <>

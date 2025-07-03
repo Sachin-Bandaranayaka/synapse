@@ -175,7 +175,7 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-gray-700"
+                    className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10"
                 >
                     <div className="flex justify-between items-center">
                         <div>
@@ -190,7 +190,7 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={checkTracking}
                                 disabled={isLoading}
-                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md ring-1 ring-white/10 text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                             >
                                 {isLoading ? (
                                     <>
@@ -211,7 +211,7 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                                     href={getTrackingUrl()!}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center px-4 py-2 border border-gray-600 text-sm font-medium rounded-md shadow-sm text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    className="inline-flex items-center px-4 py-2 border border-gray-600 text-sm font-medium rounded-md ring-1 ring-white/10 text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                 >
                                     Track on Carrier Site →
                                 </motion.a>
@@ -270,7 +270,7 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                                         </span>
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <div className="text-sm font-medium text-gray-200">
+                                        <div className="text-sm font-medium text-gray-100">
                                             {step.name}
                                         </div>
                                         <div className="mt-1 flex flex-col sm:flex-row sm:flex-wrap sm:mt-0 sm:space-x-6">
@@ -278,7 +278,7 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                                                 {step.description}
                                             </div>
                                             {step.date && (
-                                                <div className="mt-2 text-sm text-gray-500">
+                                                <div className="mt-2 text-sm text-gray-400">
                                                     {step.date}
                                                 </div>
                                             )}
@@ -296,7 +296,7 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="rounded-lg bg-gray-800 shadow-lg overflow-hidden ring-1 ring-gray-700"
+                className="rounded-lg bg-gray-800 ring-1 ring-white/10 overflow-hidden"
             >
                 <div className="px-4 py-5 sm:p-6">
                     <h4 className="text-lg font-medium text-indigo-400">Order Summary</h4>
@@ -304,7 +304,7 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                         <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                             <div>
                                 <dt className="text-sm font-medium text-gray-400">Customer</dt>
-                                <dd className="mt-1 text-sm text-gray-300">
+                                <dd className="mt-1 text-sm text-gray-100">
                                     <div className="space-y-1">
                                         <p className="font-medium">{order.customerName}</p>
                                         <p>{order.customerPhone}</p>
@@ -314,7 +314,7 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                             </div>
                             <div>
                                 <dt className="text-sm font-medium text-gray-400">Product Details</dt>
-                                <dd className="mt-1 text-sm text-gray-300">
+                                <dd className="mt-1 text-sm text-gray-100">
                                     <div className="space-y-1">
                                         <p className="font-medium">{order.product.name}</p>
                                         <p className="text-xs">Code: {order.product.code}</p>

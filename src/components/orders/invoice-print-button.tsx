@@ -40,7 +40,7 @@ export function InvoicePrintButton({ orderId, isPrinted }: InvoicePrintButtonPro
     return (
         <Button
             variant={printed ? "outline" : "default"}
-            className={`${printed ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''} flex items-center space-x-2`}
+            className={`${printed ? 'bg-green-900/50 text-green-300 hover:bg-green-800/50' : ''} flex items-center space-x-2`}
             onClick={handleTogglePrintStatus}
             disabled={loading}
         >

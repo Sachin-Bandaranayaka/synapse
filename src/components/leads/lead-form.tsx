@@ -95,7 +95,7 @@ export function LeadForm({ products, onSubmit, onCancel }: LeadFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="name" className="block text-sm font-medium text-gray-400">
             Name
           </label>
           <input
@@ -103,13 +103,13 @@ export function LeadForm({ products, onSubmit, onCancel }: LeadFormProps) {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
           />
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-400">
             Phone
           </label>
           <input
@@ -117,13 +117,13 @@ export function LeadForm({ products, onSubmit, onCancel }: LeadFormProps) {
             id="phone"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
           />
         </div>
 
         <div className="sm:col-span-2">
-          <label htmlFor="address" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="address" className="block text-sm font-medium text-gray-400">
             Address
           </label>
           <input
@@ -131,20 +131,20 @@ export function LeadForm({ products, onSubmit, onCancel }: LeadFormProps) {
             id="address"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
           />
         </div>
 
         <div>
-          <label htmlFor="product" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="product" className="block text-sm font-medium text-gray-400">
             Product
           </label>
           <select
             id="product"
             value={formData.productCode}
             onChange={(e) => setFormData({ ...formData, productCode: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
           >
             <option value="">Select a product</option>
@@ -157,7 +157,7 @@ export function LeadForm({ products, onSubmit, onCancel }: LeadFormProps) {
         </div>
 
         <div className="sm:col-span-2">
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-300">
+          <label htmlFor="notes" className="block text-sm font-medium text-gray-400">
             Notes (Optional)
           </label>
           <textarea
@@ -165,7 +165,7 @@ export function LeadForm({ products, onSubmit, onCancel }: LeadFormProps) {
             value={formData.notes || ''}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             rows={3}
-            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
       </div>
@@ -182,7 +182,7 @@ export function LeadForm({ products, onSubmit, onCancel }: LeadFormProps) {
           onClick={onCancel}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="inline-flex items-center rounded-md border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          className="inline-flex items-center rounded-md border border-gray-700 px-4 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
         >
           Cancel
         </motion.button>
@@ -191,7 +191,7 @@ export function LeadForm({ products, onSubmit, onCancel }: LeadFormProps) {
           disabled={isLoading}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+          className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
         >
           {isLoading ? (
             <>

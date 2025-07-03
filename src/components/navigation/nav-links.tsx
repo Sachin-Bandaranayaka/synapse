@@ -31,8 +31,8 @@ export function NavLinks() {
             href={link.href}
             className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
               isActive
-                ? 'border-b-2 border-indigo-500 text-gray-900'
-                : 'border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                ? 'border-b-2 border-indigo-500 text-white'
+                : 'border-b-2 border-transparent text-gray-400 hover:border-gray-600 hover:text-gray-300'
             }`}
           >
             {link.label}

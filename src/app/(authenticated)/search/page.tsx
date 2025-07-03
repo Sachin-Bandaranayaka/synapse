@@ -62,9 +62,9 @@ export default function SearchPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 bg-gray-900">
             <div>
-                <h1 className="text-2xl font-semibold text-gray-100">Customer Search</h1>
+                <h1 className="text-2xl font-semibold text-white">Customer Search</h1>
                 <p className="mt-2 text-sm text-gray-400">
                     Search for customers by name or phone number
                 </p>
@@ -79,7 +79,7 @@ export default function SearchPage() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="Enter customer name or phone number..."
-                        className="w-full rounded-lg border-gray-700 bg-gray-800 text-gray-100 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500"
+                        className="w-full rounded-lg border-gray-600 bg-gray-700 text-white placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500"
                     />
                 </div>
                 <motion.button
@@ -123,10 +123,10 @@ export default function SearchPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="rounded-lg bg-gray-800 p-6 ring-1 ring-gray-700"
+                            className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10"
                         >
                             <div className="mb-4">
-                                <h3 className="text-lg font-medium text-gray-100">{result.customerName}</h3>
+                                <h3 className="text-lg font-medium text-white">{result.customerName}</h3>
                                 <div className="mt-1 text-sm text-gray-400">
                                     <p>📞 {result.customerPhone}</p>
                                     <p>📍 {result.customerAddress}</p>
@@ -167,10 +167,11 @@ export default function SearchPage() {
                     ))}
                 </div>
             ) : searchQuery && !isLoading ? (
-                <div className="rounded-lg bg-gray-800 p-8 text-center text-gray-400 ring-1 ring-gray-700">
+                <div className="rounded-lg bg-gray-800 p-8 text-center text-gray-400 ring-1 ring-white/10">
                     No results found for "{searchQuery}"
                 </div>
             ) : null}
         </div>
     );
-} 
+}
+ 

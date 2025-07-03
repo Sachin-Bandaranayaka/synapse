@@ -58,36 +58,36 @@ export default async function ReportsPage() {
 
     // The UI remains the same, just with corrected colors for light mode
     return (
-        <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+        <div className="space-y-6 p-4 sm:p-6 lg:p-8 bg-gray-900">
             <div>
-                <h1 className="text-2xl font-semibold text-gray-900">Reports</h1>
-                <p className="mt-2 text-sm text-gray-600">
+                <h1 className="text-2xl font-semibold text-white">Reports</h1>
+                <p className="mt-2 text-sm text-gray-400">
                     View and analyze your business performance
                 </p>
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="bg-white rounded-lg p-6 shadow">
-                    <div className="text-sm font-medium text-gray-500">Total Orders</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-900">{totalOrders}</div>
+                <div className="bg-gray-800 rounded-lg p-6 ring-1 ring-white/10">
+                    <div className="text-sm font-medium text-gray-400">Total Orders</div>
+                    <div className="mt-2 text-3xl font-semibold text-white">{totalOrders}</div>
                 </div>
-                <div className="bg-white rounded-lg p-6 shadow">
-                    <div className="text-sm font-medium text-gray-500">Active Products</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-900">{totalProducts}</div>
+                <div className="bg-gray-800 rounded-lg p-6 ring-1 ring-white/10">
+                    <div className="text-sm font-medium text-gray-400">Active Products</div>
+                    <div className="mt-2 text-3xl font-semibold text-white">{totalProducts}</div>
                 </div>
-                <div className="bg-white rounded-lg p-6 shadow">
-                    <div className="text-sm font-medium text-gray-500">Total Leads</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-900">{totalLeads}</div>
+                <div className="bg-gray-800 rounded-lg p-6 ring-1 ring-white/10">
+                    <div className="text-sm font-medium text-gray-400">Total Leads</div>
+                    <div className="mt-2 text-3xl font-semibold text-white">{totalLeads}</div>
                 </div>
-                <div className="bg-white rounded-lg p-6 shadow">
-                    <div className="text-sm font-medium text-gray-500">Total Shipments</div>
-                    <div className="mt-2 text-3xl font-semibold text-gray-900">{totalShipments}</div>
+                <div className="bg-gray-800 rounded-lg p-6 ring-1 ring-white/10">
+                    <div className="text-sm font-medium text-gray-400">Total Shipments</div>
+                    <div className="mt-2 text-3xl font-semibold text-white">{totalShipments}</div>
                 </div>
             </div>
 
             {/* Report Tabs */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-gray-800 rounded-lg ring-1 ring-white/10 overflow-hidden">
                 <ReportTabs
                     initialData={{
                         totalOrders,

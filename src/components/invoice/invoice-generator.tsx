@@ -102,7 +102,7 @@ export function InvoiceGenerator({ initialData, onGenerated }: InvoiceGeneratorP
 
                 <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
                     <div>
-                        <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="customerName" className="block text-sm font-medium text-gray-400">
                             Customer Name
                         </label>
                         <div className="mt-1">
@@ -113,13 +113,13 @@ export function InvoiceGenerator({ initialData, onGenerated }: InvoiceGeneratorP
                                 required
                                 value={formData.customerName}
                                 onChange={handleChange}
-                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                className="ring-1 ring-white/10 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-600 rounded-md"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label htmlFor="customerPhone" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="customerPhone" className="block text-sm font-medium text-gray-400">
                             Phone Number
                         </label>
                         <div className="mt-1">
@@ -130,13 +130,13 @@ export function InvoiceGenerator({ initialData, onGenerated }: InvoiceGeneratorP
                                 required
                                 value={formData.customerPhone}
                                 onChange={handleChange}
-                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                className="ring-1 ring-white/10 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-600 rounded-md"
                             />
                         </div>
                     </div>
 
                     <div className="sm:col-span-2">
-                        <label htmlFor="customerAddress" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="customerAddress" className="block text-sm font-medium text-gray-400">
                             Address
                         </label>
                         <div className="mt-1">
@@ -147,13 +147,13 @@ export function InvoiceGenerator({ initialData, onGenerated }: InvoiceGeneratorP
                                 required
                                 value={formData.customerAddress}
                                 onChange={handleChange}
-                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                className="ring-1 ring-white/10 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-600 rounded-md"
                             />
                         </div>
                     </div>
 
                     <div className="sm:col-span-2">
-                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="amount" className="block text-sm font-medium text-gray-400">
                             Amount (Rs.)
                         </label>
                         <div className="mt-1">
@@ -166,7 +166,7 @@ export function InvoiceGenerator({ initialData, onGenerated }: InvoiceGeneratorP
                                 step="0.01"
                                 value={formData.amount}
                                 onChange={handleChange}
-                                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                className="ring-1 ring-white/10 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-600 rounded-md"
                             />
                         </div>
                     </div>
@@ -176,7 +176,7 @@ export function InvoiceGenerator({ initialData, onGenerated }: InvoiceGeneratorP
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                        className="inline-flex justify-center py-2 px-4 border border-transparent ring-1 ring-white/10 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                     >
                         {isLoading ? 'Generating...' : 'Generate Invoice'}
                     </button>

@@ -61,7 +61,7 @@ export function StockAdjustmentForm({ products }: StockAdjustmentFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="product" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="product" className="block text-sm font-medium text-gray-400">
           Product
         </label>
         <select
@@ -69,7 +69,7 @@ export function StockAdjustmentForm({ products }: StockAdjustmentFormProps) {
           value={productId}
           onChange={(e) => setProductId(e.target.value)}
           required
-          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >
           <option value="">Select a product</option>
           {products.map((product) => (
@@ -81,7 +81,7 @@ export function StockAdjustmentForm({ products }: StockAdjustmentFormProps) {
       </div>
 
       <div>
-        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="quantity" className="block text-sm font-medium text-gray-400">
           Quantity Change
         </label>
         <div className="mt-1">
@@ -92,13 +92,13 @@ export function StockAdjustmentForm({ products }: StockAdjustmentFormProps) {
             onChange={(e) => setQuantity(e.target.value)}
             required
             placeholder="Enter positive for addition, negative for reduction"
-            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            className="ring-1 ring-white/10 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-600 rounded-md"
           />
         </div>
       </div>
 
       <div>
-        <label htmlFor="reason" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="reason" className="block text-sm font-medium text-gray-400">
           Reason
         </label>
         <div className="mt-1">
@@ -109,7 +109,7 @@ export function StockAdjustmentForm({ products }: StockAdjustmentFormProps) {
             onChange={(e) => setReason(e.target.value)}
             required
             placeholder="Enter reason for adjustment"
-            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            className="ring-1 ring-white/10 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-600 rounded-md"
           />
         </div>
       </div>
@@ -125,7 +125,7 @@ export function StockAdjustmentForm({ products }: StockAdjustmentFormProps) {
       <button
         type="submit"
         disabled={isLoading}
-        className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+        className="inline-flex justify-center py-2 px-4 border border-transparent ring-1 ring-white/10 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
       >
         {isLoading ? 'Adjusting...' : 'Adjust Stock'}
       </button>

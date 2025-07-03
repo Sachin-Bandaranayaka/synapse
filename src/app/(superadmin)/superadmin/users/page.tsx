@@ -2,12 +2,21 @@
 
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { toggleTenantStatus } from '../actions'; // Import the action
+import { toggleTenantStatus } from '../actions'; 
 
 export default async function SuperAdminUsersPage() {
+  // --- UPDATED QUERY ---
+  // We now 'include' the 'referredBy' relation to get the referrer's name
   const tenants = await prisma.tenant.findMany({
     orderBy: {
       createdAt: 'desc',
+    },
+    include: {
+      referredBy: {
+        select: {
+          name: true,
+        },
+      },
     },
   });
 
@@ -41,6 +50,8 @@ export default async function SuperAdminUsersPage() {
                   <tr>
                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6">Name</th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white">Status</th>
+                    {/* --- NEW COLUMN HEADER --- */}
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white">Referred By</th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-white">Date Created</th>
                     <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                       <span className="sr-only">Actions</span>
@@ -58,6 +69,8 @@ export default async function SuperAdminUsersPage() {
                           <span className="inline-flex items-center rounded-md bg-red-900/50 px-2 py-1 text-xs font-medium text-red-300 ring-1 ring-inset ring-red-500/50">Inactive</span>
                         )}
                       </td>
+                      {/* --- NEW COLUMN DATA --- */}
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{tenant.referredBy?.name ?? 'Direct'}</td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400">{new Date(tenant.createdAt).toLocaleDateString()}</td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <div className="flex items-center justify-end gap-x-4">

@@ -76,7 +76,7 @@ export function OrderActions({ order }: OrderActionsProps) {
           value={order.status}
           onChange={(e) => handleStatusUpdate(e.target.value)}
           disabled={isLoading}
-          className="block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+          className="block w-full rounded-md border-gray-600 bg-gray-700 py-1.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
         >
           <option key="pending" value="PENDING">Pending</option>
           <option key="confirmed" value="CONFIRMED">Confirmed</option>
@@ -92,7 +92,7 @@ export function OrderActions({ order }: OrderActionsProps) {
           <select
             onChange={(e) => handleShipment(e.target.value as CourierType)}
             disabled={isLoading}
-            className="block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+            className="block w-full rounded-md border-gray-600 bg-gray-700 py-1.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
           >
             <option key="empty" value="">Ship via...</option>
             <option key="farda" value="FARDA_EXPRESS">Farda Express</option>
@@ -104,7 +104,7 @@ export function OrderActions({ order }: OrderActionsProps) {
 
       <button
         onClick={handleGenerateInvoice}
-        className="text-blue-600 hover:text-blue-900"
+        className="text-blue-400 hover:text-blue-300"
       >
         Generate Invoice
       </button>

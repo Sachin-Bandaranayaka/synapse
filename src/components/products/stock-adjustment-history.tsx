@@ -49,7 +49,7 @@ export function StockAdjustmentHistory({ adjustments }: StockAdjustmentHistoryPr
                                 }`}>
                                     {adjustment.quantity > 0 ? '+' : ''}{adjustment.quantity}
                                 </span>
-                                <span className="text-sm font-medium text-gray-200">
+                                <span className="text-sm font-medium text-white">
                                     {adjustment.reason}
                                 </span>
                             </div>

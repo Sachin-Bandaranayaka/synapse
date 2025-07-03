@@ -91,32 +91,32 @@ export default function LeadCharts({ startDate, endDate }: LeadChartsProps) {
   return (
     <div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-gray-800 overflow-hidden ring-1 ring-white/10 rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">
+            <dt className="text-sm font-medium text-gray-400 truncate">
               Total Leads
             </dt>
-            <dd className="mt-1 text-3xl font-semibold text-gray-900">
+            <dd className="mt-1 text-3xl font-semibold text-white">
               {data.totalLeads}
             </dd>
           </div>
         </div>
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-gray-800 overflow-hidden ring-1 ring-white/10 rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">
+            <dt className="text-sm font-medium text-gray-400 truncate">
               Converted Leads
             </dt>
-            <dd className="mt-1 text-3xl font-semibold text-gray-900">
+            <dd className="mt-1 text-3xl font-semibold text-white">
               {data.convertedLeads}
             </dd>
           </div>
         </div>
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-gray-800 overflow-hidden ring-1 ring-white/10 rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <dt className="text-sm font-medium text-gray-500 truncate">
+            <dt className="text-sm font-medium text-gray-400 truncate">
               Conversion Rate
             </dt>
-            <dd className="mt-1 text-3xl font-semibold text-gray-900">
+            <dd className="mt-1 text-3xl font-semibold text-white">
               {data.conversionRate.toFixed(1)}%
             </dd>
           </div>
@@ -124,8 +124,8 @@ export default function LeadCharts({ startDate, endDate }: LeadChartsProps) {
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900">Leads by Status</h3>
+        <div className="bg-gray-800 ring-1 ring-white/10 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-white">Leads by Status</h3>
           <div className="mt-4" style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -151,8 +151,8 @@ export default function LeadCharts({ startDate, endDate }: LeadChartsProps) {
           </div>
         </div>
 
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900">Leads by Source</h3>
+        <div className="bg-gray-800 ring-1 ring-white/10 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-white">Leads by Source</h3>
           <div className="mt-4" style={{ height: 300 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart

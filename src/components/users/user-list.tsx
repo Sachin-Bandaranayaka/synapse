@@ -57,7 +57,7 @@ export function UserList({ users }: UserListProps) {
             >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex flex-col">
-                  <div className="text-sm font-medium text-gray-100">{user.name || 'No name'}</div>
+                  <div className="text-sm font-medium text-white">{user.name || 'No name'}</div>
                   <div className="text-sm text-gray-400">{user.email}</div>
                 </div>
               </td>
@@ -66,13 +66,13 @@ export function UserList({ users }: UserListProps) {
                   {user.role === 'TEAM_MEMBER' ? 'Team Member' : 'Admin'}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">
                 {user.totalOrders}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">
                 {user.totalLeads}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">
                 {format(new Date(user.createdAt), 'MMM d, yyyy')}
               </td>
             </motion.tr>

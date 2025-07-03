@@ -56,7 +56,7 @@ export function MultiInvoice({ orders }: MultiInvoiceProps) {
                                 return (
                                     <div
                                         key={order.id}
-                                        className="h-[45mm] py-0 px-1 flex items-start justify-start border-r border-b border-gray-300 last:border-b-0 even:border-r-0 print:border-black"
+                                        className="h-[45mm] py-0 px-1 flex items-start justify-start border-r border-b border-gray-700 last:border-b-0 even:border-r-0 print:border-black"
                                     >
                                         <Invoice
                                             order={order}

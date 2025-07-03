@@ -555,14 +555,14 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-                <label htmlFor="provider" className="block text-sm font-medium text-gray-300">
+                <label htmlFor="provider" className="block text-sm font-medium text-gray-400">
                     Shipping Provider
                 </label>
                 <select
                     id="provider"
                     value={provider}
                     onChange={(e) => setProvider(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                     required
                 >
                     <option key="empty" value="">Select a provider</option>
@@ -576,7 +576,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
             {(provider === ShippingProvider.FARDA_EXPRESS || provider === ShippingProvider.TRANS_EXPRESS || provider === ShippingProvider.ROYAL_EXPRESS) && (
                 <>
                     <div>
-                        <label htmlFor="weight" className="block text-sm font-medium text-gray-300">
+                        <label htmlFor="weight" className="block text-sm font-medium text-gray-400">
                             Parcel Weight (kg)
                         </label>
                         <input
@@ -584,7 +584,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                             id="weight"
                             value={weight}
                             onChange={(e) => setWeight(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             required
                             min="0.1"
                             step="0.1"
@@ -593,7 +593,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
 
                     {provider === ShippingProvider.FARDA_EXPRESS && (
                         <div>
-                            <label htmlFor="city" className="block text-sm font-medium text-gray-300">
+                            <label htmlFor="city" className="block text-sm font-medium text-gray-400">
                                 Recipient City
                             </label>
                             <input
@@ -601,7 +601,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                                 id="city"
                                 value={city}
                                 onChange={(e) => setCity(e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                 required
                             />
                         </div>
@@ -610,14 +610,14 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                     {provider === ShippingProvider.TRANS_EXPRESS && (
                         <>
                             <div style={{ position: 'relative', zIndex: 50 }}>
-                                <label htmlFor="district" className="block text-sm font-medium text-gray-300">
+                                <label htmlFor="district" className="block text-sm font-medium text-gray-400">
                                     District
                                 </label>
                                 <select
                                     id="district"
                                     value={selectedDistrict}
                                     onChange={(e) => setSelectedDistrict(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     required
                                     disabled={isLoadingLocations}
                                     style={{ zIndex: 50 }}
@@ -645,7 +645,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                             </div>
 
                             <div style={{ position: 'relative', zIndex: 40 }}>
-                                <label htmlFor="city_id" className="block text-sm font-medium text-gray-300">
+                                <label htmlFor="city_id" className="block text-sm font-medium text-gray-400">
                                     City
                                 </label>
                                 <div className="relative city-dropdown-container">
@@ -666,7 +666,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                                             onClick={() => setShowCityDropdown(true)}
                                             onFocus={() => setShowCityDropdown(true)}
                                             placeholder={isLoadingLocations ? "Loading cities..." : "Search for a city..."}
-                                            className="mt-1 block w-full pl-10 pr-10 rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                            className="mt-1 block w-full pl-10 pr-10 rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                             required
                                             disabled={isLoadingLocations}
                                         />
@@ -685,7 +685,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                                         </div>
                                     </div>
                                     {showCityDropdown && !isLoadingLocations && (
-                                        <div className="absolute z-50 mt-1 w-full bg-gray-800 rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-700">
+                                        <div className="absolute z-50 mt-1 w-full bg-gray-800 rounded-md ring-1 ring-white/10 max-h-60 overflow-y-auto border border-gray-700">
                                             {filteredCities.length > 0 ? filteredCities.map((city) => (
                                                 <button
                                                     key={city.id}
@@ -694,7 +694,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                                                         setCitySearchTerm(city.name);
                                                         setShowCityDropdown(false);
                                                     }}
-                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-100 hover:bg-gray-700"
                                                 >
                                                     {city.name}
                                                 </button>
@@ -719,14 +719,14 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                     {provider === ShippingProvider.ROYAL_EXPRESS && (
                         <>
                             <div style={{ position: 'relative', zIndex: 50 }}>
-                                <label htmlFor="royalState" className="block text-sm font-medium text-gray-300">
+                                <label htmlFor="royalState" className="block text-sm font-medium text-gray-400">
                                     State
                                 </label>
                                 <select
                                     id="royalState"
                                     value={selectedState}
                                     onChange={(e) => setSelectedState(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                     required
                                     disabled={isLoadingRoyalLocations}
                                     style={{ zIndex: 50 }}
@@ -752,7 +752,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                             </div>
 
                             <div style={{ position: 'relative', zIndex: 30 }}>
-                                <label htmlFor="royalCity" className="block text-sm font-medium text-gray-300">
+                                <label htmlFor="royalCity" className="block text-sm font-medium text-gray-400">
                                     City
                                 </label>
                                 <div className="relative royal-city-dropdown-container">
@@ -774,13 +774,13 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                                                 onClick={() => setShowRoyalCityDropdown(true)}
                                                 onFocus={() => setShowRoyalCityDropdown(true)}
                                                 placeholder={isLoadingRoyalLocations ? "Loading cities..." : "Search for a city..."}
-                                                className="mt-1 block w-full pl-10 pr-10 rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                                                className="mt-1 block w-full pl-10 pr-10 rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                                                 required
                                                 disabled={isLoadingRoyalLocations}
                                             />
                                             <button
                                                 type="button"
-                                                className="ml-2 mt-1 inline-flex items-center rounded border border-gray-700 px-2.5 py-1.5 text-xs font-medium text-gray-300 shadow-sm hover:bg-gray-700"
+                                                className="ml-2 mt-1 inline-flex items-center rounded border border-gray-700 px-2.5 py-1.5 text-xs font-medium text-gray-400 ring-1 ring-white/10 hover:bg-gray-700"
                                                 onClick={() => {
                                                     if (selectedState) {
                                                         // Force refresh cities for the selected state
@@ -834,7 +834,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                                         )}
                                     </div>
                                     {showRoyalCityDropdown && !isLoadingRoyalLocations && (
-                                        <div className="absolute z-50 mt-1 w-full bg-gray-800 rounded-md shadow-lg max-h-60 overflow-y-auto border border-gray-700">
+                                        <div className="absolute z-50 mt-1 w-full bg-gray-800 rounded-md ring-1 ring-white/10 max-h-60 overflow-y-auto border border-gray-700">
                                             {filteredRoyalCities.length > 0 ? filteredRoyalCities.map((city) => (
                                                 <button
                                                     key={city.id}
@@ -843,7 +843,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                                                         setRoyalCitySearchTerm(city.name);
                                                         setShowRoyalCityDropdown(false);
                                                     }}
-                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-100 hover:bg-gray-700"
                                                 >
                                                     {city.name}
                                                 </button>
@@ -869,7 +869,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
 
             {provider !== ShippingProvider.FARDA_EXPRESS && provider !== ShippingProvider.TRANS_EXPRESS && provider !== ShippingProvider.ROYAL_EXPRESS && (
                 <div>
-                    <label htmlFor="tracking" className="block text-sm font-medium text-gray-300">
+                    <label htmlFor="tracking" className="block text-sm font-medium text-gray-400">
                         Tracking Number
                     </label>
                     <input
@@ -877,7 +877,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                         id="tracking"
                         value={trackingNumber}
                         onChange={(e) => setTrackingNumber(e.target.value)}
-                        className="mt-1 block w-full rounded-md border-gray-700 bg-gray-700 text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         required
                     />
                 </div>
@@ -895,7 +895,7 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
                     disabled={isLoading}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+                    className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                     {isLoading ? (
                         <>

@@ -62,7 +62,7 @@ export function StockHistory({ products }: StockHistoryProps) {
         <select
           value={selectedProduct}
           onChange={(e) => setSelectedProduct(e.target.value)}
-          className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          className="block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >
           <option value="">Select a product</option>
           {products.map((product) => (
@@ -78,10 +78,10 @@ export function StockHistory({ products }: StockHistoryProps) {
       )}
 
       {isLoading ? (
-        <div className="text-sm text-gray-500">Loading history...</div>
+        <div className="text-sm text-gray-400">Loading history...</div>
       ) : selectedProduct && history.length > 0 ? (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
+        <div className="bg-gray-800 ring-1 ring-white/10 overflow-hidden sm:rounded-md">
+          <ul className="divide-y divide-gray-700">
             {history.map((adjustment) => (
               <li key={adjustment.id} className="px-4 py-4 sm:px-6">
                 <div className="flex items-center justify-between">
@@ -89,19 +89,19 @@ export function StockHistory({ products }: StockHistoryProps) {
                     {adjustment.quantity > 0 ? 'Added' : 'Removed'}{' '}
                     {Math.abs(adjustment.quantity)} units
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-400">
                     {new Date(adjustment.createdAt).toLocaleString()}
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-sm text-gray-900">
+                  <div className="text-sm text-white">
                     Reason: {adjustment.reason}
                   </div>
-                  <div className="mt-1 text-sm text-gray-500">
+                  <div className="mt-1 text-sm text-gray-400">
                     Stock changed from {adjustment.previousStock} to{' '}
                     {adjustment.newStock}
                   </div>
-                  <div className="mt-1 text-sm text-gray-500">
+                  <div className="mt-1 text-sm text-gray-400">
                     Adjusted by: {adjustment.adjustedBy.name || adjustment.adjustedBy.email}
                   </div>
                 </div>
@@ -110,7 +110,7 @@ export function StockHistory({ products }: StockHistoryProps) {
           </ul>
         </div>
       ) : selectedProduct ? (
-        <div className="text-sm text-gray-500">No history available</div>
+        <div className="text-sm text-gray-400">No history available</div>
       ) : null}
     </div>
   );
