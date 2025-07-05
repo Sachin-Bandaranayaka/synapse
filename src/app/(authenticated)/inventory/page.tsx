@@ -1,21 +1,23 @@
-// src/app/(authenticated)/inventory/page.tsx
-
 import { getSession } from "@/lib/auth";
 import { getScopedPrismaClient } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { InventoryClient } from "./inventory-client"; // Import our new client component
+import { InventoryClient } from "./inventory-client";
+import { User } from "next-auth"; // Import the User type
 
 export default async function InventoryPage() {
-  // 1. Get the server-side session and tenantId
   const session = await getSession();
+
   if (!session?.user?.tenantId) {
     return redirect('/auth/signin');
   }
 
-  // 2. Get the scoped Prisma client for the current tenant
+  // This permission check correctly secures the page
+  if (session.user.role !== 'ADMIN' && !session.user.permissions?.includes('VIEW_INVENTORY')) {
+    return redirect('/unauthorized');
+  }
+
   const prisma = getScopedPrismaClient(session.user.tenantId);
 
-  // 3. Fetch only the products for that tenant
   const products = await prisma.product.findMany({
     orderBy: {
       name: 'asc'
@@ -30,6 +32,6 @@ export default async function InventoryPage() {
     }
   });
 
-  // 4. Render the client component, passing the securely fetched products as a prop
-  return <InventoryClient initialProducts={products} />;
+  // --- FIX: Pass the user object to the client component ---
+  return <InventoryClient initialProducts={products} user={session.user as User} />;
 }

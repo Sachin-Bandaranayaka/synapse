@@ -39,4 +39,8 @@ body {
     page-break-inside: avoid;
     break-inside: avoid;
   }
+
+  .invoice-page {
+    page-break-after: always;
+  }
 }

@@ -1,11 +1,10 @@
-// src/app/(authenticated)/reports/page.tsx
-
-import { getScopedPrismaClient } from '@/lib/prisma'; // Import our scoped client
+import { getScopedPrismaClient } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { ReportTabs } from '@/components/reports/report-tabs';
 import { Metadata } from 'next';
+import { User } from 'next-auth'; // Import User type
 
 export const metadata: Metadata = {
     title: 'Reports',
@@ -15,37 +14,27 @@ export const metadata: Metadata = {
 export default async function ReportsPage() {
     const session = await getServerSession(authOptions);
 
-    // 1. Secure the page and get the tenantId
     if (!session?.user?.tenantId) {
         return redirect('/auth/signin');
     }
-    // Only admins can view reports
-    if (session.user.role !== 'ADMIN') {
+
+    // This check correctly allows users with VIEW_REPORTS to see the page
+    if (session.user.role !== 'ADMIN' && !session.user.permissions?.includes('VIEW_REPORTS')) {
         return redirect('/unauthorized');
     }
 
-    // 2. Use the scoped client for all queries
     const prisma = getScopedPrismaClient(session.user.tenantId);
 
-    // 3. These queries are now SECURE. They only count data for the current tenant.
     const [totalOrders, totalProducts, totalLeads, totalShipments] = await Promise.all([
         prisma.order.count(),
         prisma.product.count(),
         prisma.lead.count(),
-        prisma.order.count({
-            where: {
-                shippingProvider: { not: null },
-                trackingNumber: { not: null }
-            }
-        })
+        prisma.order.count({ where: { shippingProvider: { not: null } } })
     ]);
 
-    // 4. This groupBy query is also SECURE.
     const shippingStats = await prisma.order.groupBy({
         by: ['shippingProvider'],
-        where: {
-            shippingProvider: { not: null }
-        },
+        where: { shippingProvider: { not: null } },
         _count: true
     });
 
@@ -56,9 +45,8 @@ export default async function ReportsPage() {
         return acc;
     }, {} as Record<string, number>);
 
-    // The UI remains the same, just with corrected colors for light mode
     return (
-        <div className="space-y-6 p-4 sm:p-6 lg:p-8 bg-gray-900">
+        <div className="space-y-6 p-4 sm:p-6 bg-gray-900">
             <div>
                 <h1 className="text-2xl font-semibold text-white">Reports</h1>
                 <p className="mt-2 text-sm text-gray-400">
@@ -86,9 +74,10 @@ export default async function ReportsPage() {
                 </div>
             </div>
 
-            {/* Report Tabs */}
             <div className="bg-gray-800 rounded-lg ring-1 ring-white/10 overflow-hidden">
+                {/* --- FIX: Pass the user object to the client component --- */}
                 <ReportTabs
+                    user={session.user as User}
                     initialData={{
                         totalOrders,
                         totalProducts,

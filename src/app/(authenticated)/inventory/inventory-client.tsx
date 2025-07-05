@@ -1,11 +1,11 @@
-// src/app/(authenticated)/inventory/inventory-client.tsx
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import { User } from 'next-auth';
+import { StockAdjustmentForm } from '@/components/inventory/stock-adjustment-form';
 
 // Define the types needed for this component
 interface Product {
@@ -24,36 +24,32 @@ interface StockAdjustment {
     previousStock: number;
     newStock: number;
     createdAt: string;
-    adjustedBy?: {
-        name: string | null;
-        email: string;
-    };
+    adjustedBy?: { name: string | null; email: string; };
 }
 
-// The component receives the initial products fetched securely by the server
-export function InventoryClient({ initialProducts }: { initialProducts: Product[] }) {
+export function InventoryClient({ initialProducts, user }: { initialProducts: Product[], user: User }) {
     const [products, setProducts] = useState<Product[]>(initialProducts);
-    const [isLoading, setIsLoading] = useState(false); // No initial loading needed
-    const [error, setError] = useState<string | null>(null);
-    const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [showAdjustModal, setShowAdjustModal] = useState(false);
     const [stockAdjustments, setStockAdjustments] = useState<StockAdjustment[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const router = useRouter();
 
+    const canEditStock = user.role === 'ADMIN' || user.permissions?.includes('EDIT_STOCK_LEVELS');
+
     useEffect(() => {
         if (selectedProduct) {
-            fetchStockHistory(selectedProduct);
+            fetchStockHistory(selectedProduct.id);
+        } else {
+            setStockAdjustments([]); // Clear history if no product is selected
         }
     }, [selectedProduct]);
 
     const fetchStockHistory = async (productId: string) => {
         setIsLoadingHistory(true);
         try {
-            // This API route is not yet secure, we will fix it next 
             const response = await fetch(`/api/inventory/${productId}/history`);
-            if (!response.ok) {
-                throw new Error('Failed to fetch stock history');
-            }
+            if (!response.ok) throw new Error('Failed to fetch stock history');
             const data = await response.json();
             setStockAdjustments(data);
         } catch (err) {
@@ -69,71 +65,77 @@ export function InventoryClient({ initialProducts }: { initialProducts: Product[
         return 'bg-green-900/20 text-green-300 ring-green-400/30';
     };
 
-    const handleManualAdjustment = async (productId: string) => {
-        // This route will also need to be secured
-        router.push(`/products/${productId}/edit`);
+    const handleOpenAdjustModal = (product: Product) => {
+        setSelectedProduct(product);
+        setShowAdjustModal(true);
+    };
+
+    const handleAdjustmentSuccess = () => {
+        setShowAdjustModal(false);
+        router.refresh(); 
     };
 
     return (
         <div className="container mx-auto px-4 py-8">
+            {showAdjustModal && selectedProduct && (
+                 <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center z-50">
+                    <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md ring-1 ring-white/10">
+                        <h2 className="text-lg font-medium text-white mb-4">Adjust Stock for {selectedProduct.name}</h2>
+                        <StockAdjustmentForm
+                            product={selectedProduct}
+                            onSuccess={handleAdjustmentSuccess}
+                            onCancel={() => setShowAdjustModal(false)}
+                        />
+                    </div>
+                 </div>
+            )}
+            
             <div className="sm:flex sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Inventory Management</h1>
-                    <p className="mt-2 text-sm text-gray-400">
-                        Track inventory levels and stock adjustment history
-                    </p>
+                    <p className="mt-2 text-sm text-gray-400">Track inventory levels and stock adjustment history</p>
                 </div>
             </div>
 
-            {error && (
-                <div className="mt-4 rounded-md bg-red-900/10 p-4">
-                    <div className="text-sm text-red-400">{error}</div>
-                </div>
-            )}
-
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-                {/* Inventory Overview */}
                 <div className="lg:col-span-2">
                     <div className="bg-gray-800 ring-1 ring-white/10 rounded-lg overflow-hidden">
-                        <div className="px-4 py-5 sm:px-6 border-b border-gray-700">
-                            <h3 className="text-lg font-medium text-white">Stock Levels</h3>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-700">
-                                <thead className="bg-gray-800">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Product</th>
-                                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Price</th>
-                                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Stock</th>
-                                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Low Stock Alert</th>
-                                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-gray-800 divide-y divide-gray-700">
-                                    {products.map((product) => (
-                                        <tr key={product.id} className={`hover:bg-gray-700/50 cursor-pointer ${selectedProduct === product.id ? 'bg-gray-700/50' : ''}`} onClick={() => setSelectedProduct(product.id)}>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-white">{product.name}</div>
-                                                <div className="text-sm text-gray-400">{product.code}</div>
+                        <table className="min-w-full divide-y divide-gray-700">
+                            <thead className="bg-gray-900">
+                                <tr>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Product</th>
+                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Stock</th>
+                                    {canEditStock && <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>}
+                                </tr>
+                            </thead>
+                            <tbody className="bg-gray-800 divide-y divide-gray-700">
+                                {products.map((product) => (
+                                    <tr key={product.id} className={`hover:bg-gray-700/50 cursor-pointer ${selectedProduct?.id === product.id ? 'bg-indigo-600/10' : ''}`} onClick={() => setSelectedProduct(product)}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-white">{product.name}</div>
+                                            <div className="text-sm text-gray-400">{product.code}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset ${getStockStatusColor(product.stock, product.lowStockAlert)}`}>{product.stock}</span></td>
+                                        {canEditStock && (
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                <button onClick={(e) => { e.stopPropagation(); handleOpenAdjustModal(product); }} className="text-indigo-400 hover:text-indigo-300">
+                                                    Adjust
+                                                </button>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">{new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(product.price)}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset ${getStockStatusColor(product.stock, product.lowStockAlert)}`}>{product.stock}</span></td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">{product.lowStockAlert}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm"><button onClick={(e) => { e.stopPropagation(); handleManualAdjustment(product.id); }} className="text-indigo-400 hover:text-indigo-300">Adjust</button></td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                {/* Stock Adjustment History */}
                 <div>
                     <div className="bg-gray-800 ring-1 ring-white/10 rounded-lg">
                         <div className="px-4 py-5 sm:px-6 border-b border-gray-700">
                             <h3 className="text-lg font-medium text-white">Stock Adjustment History</h3>
-                            {selectedProduct && products.find(p => p.id === selectedProduct) && (<p className="text-sm text-gray-400 mt-1">{products.find(p => p.id === selectedProduct)?.name}</p>)}
+                            {/* --- FIX: Use the selectedProduct object directly --- */}
+                            {selectedProduct && (<p className="text-sm text-gray-400 mt-1">{selectedProduct.name}</p>)}
                         </div>
                         <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto">
                             {!selectedProduct ? (
@@ -153,7 +155,7 @@ export function InventoryClient({ initialProducts }: { initialProducts: Product[
                                                 </div>
                                                 <div className="mt-1 text-sm text-gray-400">Previous: {adjustment.previousStock} → New: {adjustment.newStock}</div>
                                             </div>
-                                            <div className="text-xs text-gray-400">{format(new Date(adjustment.createdAt), 'MMM d, yyyy HH:mm')}</div>
+                                            <div className="text-xs text-gray-400">{format(new Date(adjustment.createdAt), 'MMM d, p')}</div>
                                         </div>
                                         {adjustment.adjustedBy && (<div className="mt-2 text-xs text-gray-400">Adjusted by: {adjustment.adjustedBy.name || adjustment.adjustedBy.email}</div>)}
                                     </motion.div>

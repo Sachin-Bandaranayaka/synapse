@@ -1,3 +1,5 @@
+// src/components/leads/lead-list.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';

@@ -32,29 +32,37 @@ export const authOptions: AuthOptions = {
         const isPasswordValid = await compare(credentials.password, user.password);
         if (!isPasswordValid) { return null; }
 
+        // --- THE FIX ---
+        // Ensure the full user object, including permissions, is returned
         return {
-          id: user.id, email: user.email, name: user.name,
-          role: user.role, tenantId: user.tenantId,
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          tenantId: user.tenantId,
+          permissions: user.permissions, // This line is critical
         };
       }
     })
   ],
   callbacks: {
-    // We are removing the redirect callback.
-    // The JWT and Session callbacks remain.
     async jwt({ token, user }) {
+      // If the user object exists (on sign-in), add its properties to the token
       if (user) {
         token.id = user.id;
-        token.role = user.role;
+        token.role = user.role as Role;
         token.tenantId = user.tenantId;
+        token.permissions = user.permissions; // Pass permissions to the token
       }
       return token;
     },
     async session({ session, token }) {
+      // Add the properties from the token to the final session object
       if (token && session.user) {
-        session.user.id = token.id;
-        session.user.role = token.role;
-        session.user.tenantId = token.tenantId;
+        session.user.id = token.id as string;
+        session.user.role = token.role as Role;
+        session.user.tenantId = token.tenantId as string;
+        session.user.permissions = token.permissions as string[]; // Pass permissions to the session
       }
       return session;
     }

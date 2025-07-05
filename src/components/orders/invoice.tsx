@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import Barcode from 'react-barcode';
 import { InvoicePrintButton } from './invoice-print-button';
 
+// Interfaces for props
 interface Product {
     name: string;
     price: number;
@@ -14,88 +15,73 @@ interface Order {
     createdAt: Date;
     customerName: string;
     customerPhone: string;
-    customerSecondPhone?: string;
+    customerSecondPhone?: string | null;
     customerAddress: string;
     product: Product;
     quantity: number;
     discount: number;
-    notes?: string;
+    notes?: string | null;
     shippingProvider?: string | null;
     trackingNumber?: string | null;
     invoicePrinted?: boolean;
 }
 
+// --- FIX: Update props to accept dynamic tenant information ---
 interface InvoiceProps {
     order: Order;
+    businessName: string | null;
+    businessAddress: string | null;
+    businessPhone: string | null;
+    invoiceNumber: string; // The full, formatted invoice number (e.g., "INV-1001")
     isMultiPrint?: boolean;
     showPrintControls?: boolean;
-    invoiceNumber?: number;
-    totalInvoices?: number;
 }
 
 export function Invoice({
     order,
+    businessName,
+    businessAddress,
+    businessPhone,
+    invoiceNumber, // Use the new prop
     isMultiPrint = false,
     showPrintControls = false,
-    invoiceNumber,
-    totalInvoices
 }: InvoiceProps) {
-    const companyInfo = {
-        name: 'J-nex Holdings',
-        address: 'Dehiatttakandiya town',
-        phone: '0762559279',
-    };
 
-    // Calculate subtotal (before discount)
     const subtotal = order.product.price * order.quantity;
-
-    // Apply the discount
     const discount = order.discount || 0;
-
-    // Calculate final total
     const total = Math.max(0, subtotal - discount);
 
     const commonInvoice = (
-        <div className="w-full px-2 bg-gray-800 text-white">
-            {/* Header with From and To addresses side by side */}
+        <div className="w-full px-2 bg-white text-black">
             <div className="flex justify-between mb-2">
-                {/* From address (left side) */}
                 <div className="text-left">
-                    <h1 className={`${isMultiPrint ? 'text-[9pt]' : 'text-[12pt]'} font-bold leading-tight text-white`}>{companyInfo.name}</h1>
-                    <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} text-gray-400 leading-tight`}>
-                        <p>{companyInfo.address}</p>
-                        <p>Tel: {companyInfo.phone}</p>
+                    {/* --- FIX: Use dynamic props for business info --- */}
+                    <h1 className={`${isMultiPrint ? 'text-[9pt]' : 'text-[12pt]'} font-bold leading-tight`}>{businessName || 'Your Company Name'}</h1>
+                    <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} text-gray-600 leading-tight`}>
+                        <p>{businessAddress || 'Your Company Address'}</p>
+                        <p>Tel: {businessPhone || 'Your Phone'}</p>
                     </div>
                     <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} leading-tight mt-1`}>
-                        <p>Invoice #: {order.id}</p>
+                        {/* --- FIX: Use the new dynamic invoiceNumber prop --- */}
+                        <p>Invoice #: {invoiceNumber}</p>
                     </div>
                 </div>
 
-                {/* To address (right side) */}
                 <div className="text-right">
-                    {/* Display invoice number when in batch print mode */}
-                    {isMultiPrint && invoiceNumber !== undefined && (
-                        <div className="mb-1">
-                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white text-black font-bold text-[10pt]">
-                                {invoiceNumber}
-                            </span>
-                        </div>
-                    )}
                     <div className={`${isMultiPrint ? 'text-[7.5pt]' : 'text-[10pt]'} leading-tight`}>
                         <p>To: <span className="font-bold">{order.customerName}</span></p>
                         <p className="font-bold">{order.customerAddress}</p>
                         <p>Tel: <span className="font-bold">{order.customerPhone}</span></p>
                         {order.customerSecondPhone && (
-                            <p>Secondary Tel: <span className="font-bold text-blue-400">{order.customerSecondPhone}</span></p>
+                            <p>Secondary Tel: <span className="font-bold text-blue-600">{order.customerSecondPhone}</span></p>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Order Details */}
             <table className={`w-full ${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} mb-0.5 leading-tight`}>
                 <thead>
-                    <tr className="border-t border-b border-gray-700">
+                    <tr className="border-t border-b border-gray-400">
                         <th className="py-0.5 text-left">Item</th>
                         <th className="py-0.5 text-right">Qty</th>
                         <th className="py-0.5 text-right">Amount</th>
@@ -106,10 +92,7 @@ export function Invoice({
                         <td className="py-0.5">{order.product.name}</td>
                         <td className="py-0.5 text-right">{order.quantity}</td>
                         <td className="py-0.5 text-right">
-                            {new Intl.NumberFormat('en-LK', {
-                                style: 'currency',
-                                currency: 'LKR'
-                            }).format(subtotal)}
+                            {new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(subtotal)}
                         </td>
                     </tr>
                 </tbody>
@@ -118,28 +101,21 @@ export function Invoice({
                         <tr>
                             <td colSpan={2} className="py-0.5 text-right">Discount:</td>
                             <td className="py-0.5 text-right">
-                                -{new Intl.NumberFormat('en-LK', {
-                                    style: 'currency',
-                                    currency: 'LKR'
-                                }).format(discount)}
+                                -{new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(discount)}
                             </td>
                         </tr>
                     )}
-                    <tr className="border-t border-gray-700">
+                    <tr className="border-t border-gray-400">
                         <td colSpan={2} className="py-0.5 text-right font-bold">Total:</td>
                         <td className="py-0.5 text-right font-bold">
-                            {new Intl.NumberFormat('en-LK', {
-                                style: 'currency',
-                                currency: 'LKR'
-                            }).format(total)}
+                            {new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(total)}
                         </td>
                     </tr>
                 </tfoot>
             </table>
 
-            {/* Shipping Info & Barcode */}
             {order.shippingProvider && order.trackingNumber && (
-                <div className="text-left">
+                <div className="text-left mt-2">
                     <p className={`${isMultiPrint ? 'text-[7pt]' : 'text-[8pt]'}`}>
                         {order.shippingProvider.replace('_', ' ')} - {order.trackingNumber}
                     </p>
@@ -150,14 +126,14 @@ export function Invoice({
                             fontSize={isMultiPrint ? 7 : 8}
                             width={1}
                             margin={0}
+                            background="transparent"
                         />
                     </div>
                 </div>
             )}
 
-            {/* Notes */}
             {order.notes && (
-                <div className="text-left my-1 border-t border-gray-700 pt-1">
+                <div className="text-left my-1 border-t border-gray-400 pt-1">
                     <p className={`${isMultiPrint ? 'text-[7pt]' : 'text-[8pt]'} font-medium`}>Notes:</p>
                     <p className={`${isMultiPrint ? 'text-[7pt]' : 'text-[8pt]'}`}>{order.notes}</p>
                 </div>
@@ -167,18 +143,12 @@ export function Invoice({
         </div>
     );
 
-    // For multi-print layout
     if (isMultiPrint) {
-        return (
-            <div className="w-full">
-                {commonInvoice}
-            </div>
-        );
+        return <div className="w-full">{commonInvoice}</div>;
     }
 
-    // For single invoice print
     return (
-        <div className="max-w-[80mm] mx-auto p-2 bg-gray-800 text-white">
+        <div className="max-w-[80mm] mx-auto p-2 bg-white text-black">
             {commonInvoice}
             {showPrintControls && !isMultiPrint && (
                 <div className="mt-4 print:hidden">

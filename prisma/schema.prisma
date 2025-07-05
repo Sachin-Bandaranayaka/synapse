@@ -60,6 +60,11 @@ model Tenant {
   transExpressPassword String?
   royalExpressApiKey   String?
 
+  // --- NEW INVOICE FIELDS ---
+  businessAddress String?
+  businessPhone   String?
+  invoicePrefix   String? 
+
   // --- NEW REFERRAL FIELDS ---
   referredById    String?
   // Defines the "parent" relationship (the tenant who did the referring)

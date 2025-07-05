@@ -80,11 +80,14 @@ export function InvoiceGenerator({ initialData, onGenerated }: InvoiceGeneratorP
             {/* Preview */}
             <div className="border rounded-lg overflow-hidden">
                 <InvoiceTemplate
+                    businessName="Your Company"
+                    businessAddress="Your Address"
+                    businessPhone="Your Phone"
+                    invoiceNumber="PREVIEW"
                     customerName={formData.customerName}
                     customerAddress={formData.customerAddress}
                     customerPhone={formData.customerPhone}
                     amount={formData.amount}
-                    referenceNumber="PREVIEW"
                 />
             </div>
 

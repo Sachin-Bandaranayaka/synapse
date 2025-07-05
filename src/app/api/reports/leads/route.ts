@@ -16,8 +16,8 @@ export async function GET(request: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Admins only for reports
-    if (session.user.role !== 'ADMIN') {
+    // Admins or users with permission can view reports
+    if (session.user.role !== 'ADMIN' && !session.user.permissions?.includes('VIEW_REPORTS')) {
         return new NextResponse('Forbidden', { status: 403 });
     }
 

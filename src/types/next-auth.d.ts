@@ -1,6 +1,6 @@
 // src/types/next-auth.d.ts
 
-import { Role } from "@prisma/client" // Import the Role enum from Prisma
+import { Role } from "@prisma/client"
 import NextAuth from "next-auth"
 import { JWT } from "next-auth/jwt"
 
@@ -10,8 +10,9 @@ declare module "next-auth" {
       id: string
       name?: string | null
       email: string
-      role: Role // Use the Role enum for type safety
-      tenantId: string // <-- ADDED tenantId
+      role: Role
+      tenantId: string
+      permissions: string[] // <-- ADD THIS LINE
     }
   }
 
@@ -19,15 +20,17 @@ declare module "next-auth" {
     id: string
     name?: string | null
     email: string
-    role: Role // Use the Role enum
-    tenantId: string // <-- ADDED tenantId
+    role: Role
+    tenantId: string
+    permissions: string[] // <-- ADD THIS LINE
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     id: string
-    role: Role // Use the Role enum
-    tenantId: string // <-- ADDED tenantId
+    role: Role
+    tenantId: string
+    permissions: string[] // <-- ADD THIS LINE
   }
 }

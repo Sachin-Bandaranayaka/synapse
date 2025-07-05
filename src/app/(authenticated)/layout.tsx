@@ -1,11 +1,12 @@
-// src/app/(authenticated)/layout.tsx
-
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import AuthenticatedUI from "./authenticated-ui"; // Import our new client UI component
+import AuthenticatedUI from "./authenticated-ui";
+import { Tenant } from "@prisma/client";
 
+// This function's props interface might need to be updated if you are passing
+// the tenant to it from a higher-level layout. For now, this is a safe assumption.
 export default async function AuthenticatedLayout({
   children,
 }: {
@@ -17,18 +18,18 @@ export default async function AuthenticatedLayout({
     return redirect('/auth/signin');
   }
 
-  // Fetch the full tenant details, including our new customization fields
   const tenant = await prisma.tenant.findUnique({
     where: { id: session.user.tenantId },
   });
   
-  // This real-time check remains for security
   if (!tenant || !tenant.isActive) {
-    const redirectUrl = new URL('/auth/signin', 'http://localhost:3000'); // Base URL needed
+    // This is a more robust way to handle redirects with errors
+    const redirectUrl = new URL('/auth/signin', process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
     redirectUrl.searchParams.set('error', 'Your account has been deactivated.');
     return redirect(redirectUrl.toString());
   }
 
-  // If the check passes, render the UI, passing the tenant data and children
-  return <AuthenticatedUI tenant={tenant}>{children}</AuthenticatedUI>;
+  // --- FIX: Pass the corrected tenant type to AuthenticatedUI ---
+  // This ensures type safety and that all expected fields are present.
+  return <AuthenticatedUI tenant={tenant as Tenant}>{children}</AuthenticatedUI>;
 }

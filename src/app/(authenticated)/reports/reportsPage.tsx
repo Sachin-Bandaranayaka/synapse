@@ -89,6 +89,7 @@ export default async function ReportsPage() {
             {/* Report Tabs */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <ReportTabs
+                    user={session.user}
                     initialData={{
                         totalOrders,
                         totalProducts,

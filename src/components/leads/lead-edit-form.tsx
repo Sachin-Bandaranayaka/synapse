@@ -1,3 +1,5 @@
+// src/components/leads/lead-edit-form.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,7 +14,7 @@ interface Product {
     price?: number;
 }
 
-interface Lead {
+export interface Lead {
     id: string;
     csvData: {
         name: string;

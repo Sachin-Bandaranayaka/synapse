@@ -1,4 +1,4 @@
-// src/app/(authenticated)/products/products-client.tsx
+// src\app\(authenticated)\products\products-client.tsx
 
 'use client';
 
@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { ProductList } from '@/components/products/product-list';
 import { ProductForm } from '@/components/products/product-form';
 import { motion, AnimatePresence } from 'framer-motion';
+import { User } from 'next-auth';
 
-// This is the Product type passed from the server component
 interface Product {
   id: string;
   code: string;
@@ -16,20 +16,19 @@ interface Product {
   price: number;
   stock: number;
   lowStockAlert: number;
-  // Add the new fields to the type definition
   totalOrders: number;
   totalLeads: number;
-  lastStockUpdate: string; // <-- Update this from Date to string
+  lastStockUpdate: string;
 }
 
-// The component receives the initial products as a prop
-export function ProductsClient({ initialProducts }: { initialProducts: Product[] }) {
+export function ProductsClient({ initialProducts, user }: { initialProducts: Product[], user: User }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
-  // This function will re-fetch products from the API
+  const hasEditPermission = user.role === 'ADMIN' || user.permissions?.includes('EDIT_PRODUCTS');
+
   const fetchProducts = async () => {
     setError(null);
     try {
@@ -51,8 +50,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create product');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create product');
       }
 
       setShowCreateForm(false);
@@ -61,7 +60,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
       alert(err instanceof Error ? err.message : 'An error occurred');
     }
   };
-  
+
   const handleImportCSV = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -78,8 +77,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to import products');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to import products');
       }
       await fetchProducts();
     } catch (err) {
@@ -90,7 +89,6 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
     }
   };
 
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="sm:flex sm:items-center sm:justify-between">
@@ -100,21 +98,24 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
             Manage your products, inventory, and pricing
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 flex space-x-3">
-          <label
-            htmlFor="csv-upload"
-            className={`inline-flex items-center justify-center rounded-md border border-gray-600 bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 ring-1 ring-white/10-sm hover:bg-gray-600 ${isImporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-          >
-            {isImporting ? 'Importing...' : 'Import CSV'}
-            <input id="csv-upload" type="file" accept=".csv" className="hidden" onChange={handleImportCSV} disabled={isImporting} />
-          </label>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10-sm hover:bg-indigo-700"
-          >
-            Add Product
-          </button>
-        </div>
+
+        {hasEditPermission && (
+          <div className="mt-4 sm:mt-0 flex space-x-3">
+            <label
+              htmlFor="csv-upload"
+              className={`inline-flex items-center justify-center rounded-md border border-gray-600 bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 ring-1 ring-white/10-sm hover:bg-gray-600 ${isImporting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              {isImporting ? 'Importing...' : 'Import CSV'}
+              <input id="csv-upload" type="file" accept=".csv" className="hidden" onChange={handleImportCSV} disabled={isImporting} />
+            </label>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10-sm hover:bg-indigo-700"
+            >
+              Add Product
+            </button>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -128,21 +129,24 @@ export function ProductsClient({ initialProducts }: { initialProducts: Product[]
           <motion.div key="form" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="mt-8">
             <div className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
               <h2 className="text-lg font-medium text-white mb-6">Create New Product</h2>
-              <ProductForm onSubmit={handleCreateProduct} onCancel={() => setShowCreateForm(false)} />
+              {/* --- FIX: Pass the 'user' object to the ProductForm component --- */}
+              <ProductForm user={user} onSubmit={handleCreateProduct} onCancel={() => setShowCreateForm(false)} />
             </div>
           </motion.div>
         ) : (
-          <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mt-8">
+          <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8">
             {products.length === 0 ? (
               <div className="text-center py-12 border-2 border-dashed border-gray-600 rounded-lg">
                 <p className="text-gray-400">No products found</p>
-                <button onClick={() => setShowCreateForm(true)} className="mt-4 inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10-sm hover:bg-indigo-700">
-                  Create your first product
-                </button>
+                {hasEditPermission && (
+                  <button onClick={() => setShowCreateForm(true)} className="mt-4 inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10-sm hover:bg-indigo-700">
+                    Create your first product
+                  </button>
+                )}
               </div>
             ) : (
               <div className="bg-gray-800 ring-1 ring-white/10 rounded-lg overflow-hidden">
-                <ProductList products={products} />
+                <ProductList products={products} user={user} />
               </div>
             )}
           </motion.div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { User } from 'next-auth';
 import { motion } from 'framer-motion';
 import { SalesReport } from './sales-report';
 import { ProductReport } from './product-report';
@@ -8,6 +9,7 @@ import { LeadReport } from './lead-report';
 import { ShippingReport } from './shipping-report';
 
 interface ReportTabsProps {
+    user: User;
     initialData: {
         totalOrders: number;
         totalProducts: number;
@@ -18,13 +20,42 @@ interface ReportTabsProps {
 }
 
 type TabType = 'sales' | 'products' | 'leads' | 'shipping';
+// --- NEW: Define a type for the time filter buttons ---
+type TimeFilterType = 'daily' | 'weekly' | 'monthly' | 'custom';
 
-export function ReportTabs({ initialData }: ReportTabsProps) {
+export function ReportTabs({ user, initialData }: ReportTabsProps) {
     const [activeTab, setActiveTab] = useState<TabType>('sales');
     const [dateRange, setDateRange] = useState({
         startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
         endDate: new Date().toISOString().split('T')[0],
     });
+    
+    // --- NEW: Add state to track the active time filter ---
+    const [activeFilter, setActiveFilter] = useState<TimeFilterType>('monthly');
+
+    const canExport = user?.role === 'ADMIN' || user?.permissions?.includes('EXPORT_REPORTS');
+    
+    // --- NEW: Function to handle clicks on the Daily, Weekly, Monthly buttons ---
+    const handleTimeFilterClick = (filter: TimeFilterType) => {
+        if (filter === 'custom') return;
+
+        setActiveFilter(filter);
+        const today = new Date();
+        let newStartDate = new Date();
+
+        if (filter === 'daily') {
+            newStartDate = today;
+        } else if (filter === 'weekly') {
+            newStartDate.setDate(today.getDate() - 6); // Today plus the previous 6 days
+        } else if (filter === 'monthly') {
+            newStartDate.setMonth(today.getMonth() - 1);
+        }
+        
+        setDateRange({
+            startDate: newStartDate.toISOString().split('T')[0],
+            endDate: today.toISOString().split('T')[0],
+        });
+    };
 
     const tabs: { id: TabType; name: string; icon: JSX.Element }[] = [
         {
@@ -64,51 +95,69 @@ export function ReportTabs({ initialData }: ReportTabsProps) {
             ),
         },
     ];
-
     return (
-        <div className="p-6">
-            {/* Date Range Selector */}
-            <div className="mb-6 flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                    <label htmlFor="startDate" className="text-sm font-medium text-gray-400">
-                        From
-                    </label>
-                    <input
-                        type="date"
-                        id="startDate"
-                        value={dateRange.startDate}
-                        onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                        className="rounded-md border-gray-700 bg-gray-700 text-gray-100 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
+        <div className="p-6 bg-gray-800 text-white">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                {/* Date Range Selector */}
+                <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                        <label htmlFor="startDate" className="text-sm font-medium text-gray-400">From</label>
+                        <input
+                            type="date" id="startDate" value={dateRange.startDate}
+                            onChange={(e) => {
+                                setDateRange(prev => ({ ...prev, startDate: e.target.value }));
+                                setActiveFilter('custom'); // Set filter to custom when manually changing
+                            }}
+                            className="rounded-md border-gray-700 bg-gray-700 text-gray-100 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <label htmlFor="endDate" className="text-sm font-medium text-gray-400">To</label>
+                        <input
+                            type="date" id="endDate" value={dateRange.endDate}
+                            onChange={(e) => {
+                                setDateRange(prev => ({ ...prev, endDate: e.target.value }));
+                                setActiveFilter('custom'); // Set filter to custom when manually changing
+                            }}
+                            className="rounded-md border-gray-700 bg-gray-700 text-gray-100 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                    </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <label htmlFor="endDate" className="text-sm font-medium text-gray-400">
-                        To
-                    </label>
-                    <input
-                        type="date"
-                        id="endDate"
-                        value={dateRange.endDate}
-                        onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                        className="rounded-md border-gray-700 bg-gray-700 text-gray-100 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
+
+                {/* --- NEW: Daily, Weekly, Monthly Buttons --- */}
+                <div className="flex items-center space-x-2 p-1 bg-gray-900 rounded-lg">
+                    <button
+                        onClick={() => handleTimeFilterClick('daily')}
+                        className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeFilter === 'daily' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+                    >
+                        Daily
+                    </button>
+                    <button
+                        onClick={() => handleTimeFilterClick('weekly')}
+                        className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeFilter === 'weekly' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+                    >
+                        Weekly
+                    </button>
+                    <button
+                        onClick={() => handleTimeFilterClick('monthly')}
+                        className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${activeFilter === 'monthly' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+                    >
+                        Monthly
+                    </button>
                 </div>
             </div>
-
-            {/* Tabs */}
+            
             <div className="border-b border-gray-700">
                 <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`
-                                flex items-center whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors
-                                ${activeTab === tab.id
+                            className={`flex items-center whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium transition-colors ${
+                                activeTab === tab.id
                                     ? 'border-indigo-500 text-indigo-400'
                                     : 'border-transparent text-gray-400 hover:border-gray-600 hover:text-gray-300'
-                                }
-                            `}
+                            }`}
                         >
                             {tab.icon}
                             <span className="ml-2">{tab.name}</span>
@@ -117,19 +166,20 @@ export function ReportTabs({ initialData }: ReportTabsProps) {
                 </nav>
             </div>
 
-            {/* Tab Content */}
             <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 20 }}
+                key={`${activeTab}-${dateRange.startDate}-${dateRange.endDate}`} // Re-trigger animation on date change
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.3 }}
                 className="mt-6"
             >
+                {/* Report components remain the same, they will re-fetch data automatically */}
                 {activeTab === 'sales' && (
                     <SalesReport
                         startDate={dateRange.startDate}
                         endDate={dateRange.endDate}
                         totalOrders={initialData.totalOrders}
+                        canExport={canExport}
                     />
                 )}
                 {activeTab === 'products' && (
@@ -137,6 +187,7 @@ export function ReportTabs({ initialData }: ReportTabsProps) {
                         startDate={dateRange.startDate}
                         endDate={dateRange.endDate}
                         totalProducts={initialData.totalProducts}
+                        canExport={canExport}
                     />
                 )}
                 {activeTab === 'leads' && (
@@ -144,6 +195,7 @@ export function ReportTabs({ initialData }: ReportTabsProps) {
                         startDate={dateRange.startDate}
                         endDate={dateRange.endDate}
                         totalLeads={initialData.totalLeads}
+                        canExport={canExport}
                     />
                 )}
                 {activeTab === 'shipping' && (
@@ -152,9 +204,10 @@ export function ReportTabs({ initialData }: ReportTabsProps) {
                         endDate={dateRange.endDate}
                         totalShipments={initialData.totalShipments}
                         shippingStats={initialData.shippingStats}
+                        canExport={canExport}
                     />
                 )}
             </motion.div>
         </div>
     );
-} 
+}

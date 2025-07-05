@@ -17,7 +17,7 @@ const productUpdateSchema = z.object({
   lowStockAlert: z.number().min(0, 'Low stock alert must be >= 0').max(100000, 'Low stock alert must be < 100,000'),
 });
 
-// COMPLETE AND SECURED GET HANDLER
+// GET handler is already secure, but we'll add an explicit permission check for consistency.
 export async function GET(
   request: Request,
   { params }: { params: { productId: string } }
@@ -27,8 +27,12 @@ export async function GET(
     if (!session?.user?.tenantId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
+    // Permission Check
+    if (session.user.role !== 'ADMIN' && !session.user.permissions?.includes('VIEW_PRODUCTS')) {
+        return new NextResponse('Forbidden', { status: 403 });
+    }
+    
     const prisma = getScopedPrismaClient(session.user.tenantId);
-
     const product = await prisma.product.findUnique({
       where: { id: params.productId },
       include: {
@@ -49,7 +53,7 @@ export async function GET(
   }
 }
 
-// COMPLETE AND SECURED PUT HANDLER
+// SECURED PUT HANDLER
 export async function PUT(
   request: Request,
   { params }: { params: { productId: string } }
@@ -72,13 +76,27 @@ export async function PUT(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
+    // --- PERMISSION CHECKS ---
+    const hasProductEditPermission = session.user.role === 'ADMIN' || session.user.permissions?.includes('EDIT_PRODUCTS');
+    const hasStockEditPermission = session.user.role === 'ADMIN' || session.user.permissions?.includes('EDIT_STOCK');
+    const stockIsChanging = currentProduct.stock !== validatedData.stock;
+    const detailsAreChanging = currentProduct.name !== validatedData.name || currentProduct.price !== validatedData.price;
+
+    if (stockIsChanging && !hasStockEditPermission) {
+        return new NextResponse('Forbidden: You do not have permission to edit stock levels.', { status: 403 });
+    }
+    if (detailsAreChanging && !hasProductEditPermission) {
+        return new NextResponse('Forbidden: You do not have permission to edit product details.', { status: 403 });
+    }
+    // --- END PERMISSION CHECKS ---
+
     const product = await prisma.$transaction(async (tx) => {
       const updatedProduct = await tx.product.update({
         where: { id: params.productId },
         data: validatedData,
       });
 
-      if (currentProduct.stock !== validatedData.stock) {
+      if (stockIsChanging) {
         await tx.stockAdjustment.create({
           data: {
             tenant: { connect: { id: session.user.tenantId } },
@@ -104,7 +122,7 @@ export async function PUT(
   }
 }
 
-// COMPLETE AND SECURED DELETE HANDLER
+// SECURED DELETE HANDLER
 export async function DELETE(
   request: Request,
   { params }: { params: { productId: string } }
@@ -114,8 +132,12 @@ export async function DELETE(
     if (!session?.user?.tenantId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
-    const prisma = getScopedPrismaClient(session.user.tenantId);
+    // Permission Check
+    if (session.user.role !== 'ADMIN' && !session.user.permissions?.includes('DELETE_PRODUCTS')) {
+        return new NextResponse('Forbidden', { status: 403 });
+    }
 
+    const prisma = getScopedPrismaClient(session.user.tenantId);
     const product = await prisma.product.findUnique({
       where: { id: params.productId },
       include: { _count: { select: { orders: true, leads: true } } },

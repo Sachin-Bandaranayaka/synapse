@@ -3,6 +3,7 @@
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
+// --- FIX: Make 'adjustedBy' optional to match the parent component's type ---
 interface StockAdjustment {
     id: string;
     quantity: number;
@@ -10,7 +11,7 @@ interface StockAdjustment {
     previousStock: number;
     newStock: number;
     createdAt: string;
-    adjustedBy: {
+    adjustedBy?: { // The '?' makes this property optional
         name: string | null;
         email: string;
     };
@@ -57,17 +58,20 @@ export function StockAdjustmentHistory({ adjustments }: StockAdjustmentHistoryPr
                                 Previous: {adjustment.previousStock} → New: {adjustment.newStock}
                             </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex-shrink-0 ml-4">
                             <div className="text-sm text-gray-400">
                                 {format(new Date(adjustment.createdAt), 'PPp')}
                             </div>
-                            <div className="mt-1 text-sm text-gray-400">
-                                by {adjustment.adjustedBy.name || adjustment.adjustedBy.email}
-                            </div>
+                            {/* --- FIX: Safely access the optional 'adjustedBy' property --- */}
+                            {adjustment.adjustedBy && (
+                               <div className="mt-1 text-sm text-gray-400">
+                                   by {adjustment.adjustedBy.name || adjustment.adjustedBy.email}
+                               </div>
+                            )}
                         </div>
                     </div>
                 </motion.div>
             ))}
         </div>
     );
-} 
+}

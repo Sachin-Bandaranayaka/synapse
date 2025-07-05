@@ -1,3 +1,5 @@
+// src/components/inventory/stock-adjustment-form.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -9,48 +11,38 @@ interface Product {
 }
 
 interface StockAdjustmentFormProps {
-  products: Product[];
+  product: Product;
+  onSuccess: () => void;
+  onCancel: () => void;
 }
 
-export function StockAdjustmentForm({ products }: StockAdjustmentFormProps) {
-  const [productId, setProductId] = useState('');
+export function StockAdjustmentForm({ product, onSuccess, onCancel }: StockAdjustmentFormProps) {
   const [quantity, setQuantity] = useState('');
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    setSuccess(false);
 
     try {
       const response = await fetch('/api/inventory/adjust', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          productId,
+          productId: product.id,
           quantity: parseInt(quantity),
           reason,
         }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to adjust stock');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to adjust stock');
       }
-
-      setSuccess(true);
-      setProductId('');
-      setQuantity('');
-      setReason('');
-      
-      // Refresh the page to show updated stock levels
-      window.location.reload();
+      onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -60,75 +52,44 @@ export function StockAdjustmentForm({ products }: StockAdjustmentFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <p className="text-sm text-gray-400">Current stock for {product.name}: {product.stock}</p>
       <div>
-        <label htmlFor="product" className="block text-sm font-medium text-gray-400">
-          Product
-        </label>
-        <select
-          id="product"
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
+        <label htmlFor="quantity" className="block text-sm font-medium text-gray-400">Quantity Change</label>
+        <input
+          type="number"
+          id="quantity"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
           required
-          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          placeholder="e.g., -5 or 10"
+          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white ring-1 ring-white/10 focus:ring-indigo-500"
+        />
+      </div>
+      <div>
+        <label htmlFor="reason" className="block text-sm font-medium text-gray-400">Reason</label>
+        <input
+          type="text"
+          id="reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          required
+          placeholder="e.g., Damaged goods, Stock count correction"
+          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white ring-1 ring-white/10 focus:ring-indigo-500"
+        />
+      </div>
+
+      {error && <div className="text-sm text-red-500">{error}</div>}
+
+      <div className="flex justify-end space-x-3 pt-4">
+        <button type="button" onClick={onCancel} className="px-4 py-2 text-sm rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600">Cancel</button>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="inline-flex justify-center py-2 px-4 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
         >
-          <option value="">Select a product</option>
-          {products.map((product) => (
-            <option key={product.id} value={product.id}>
-              {product.name} (Current stock: {product.stock})
-            </option>
-          ))}
-        </select>
+          {isLoading ? 'Adjusting...' : 'Adjust Stock'}
+        </button>
       </div>
-
-      <div>
-        <label htmlFor="quantity" className="block text-sm font-medium text-gray-400">
-          Quantity Change
-        </label>
-        <div className="mt-1">
-          <input
-            type="number"
-            id="quantity"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            required
-            placeholder="Enter positive for addition, negative for reduction"
-            className="ring-1 ring-white/10 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-600 rounded-md"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="reason" className="block text-sm font-medium text-gray-400">
-          Reason
-        </label>
-        <div className="mt-1">
-          <input
-            type="text"
-            id="reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            required
-            placeholder="Enter reason for adjustment"
-            className="ring-1 ring-white/10 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-600 rounded-md"
-          />
-        </div>
-      </div>
-
-      {error && (
-        <div className="text-sm text-red-600">{error}</div>
-      )}
-
-      {success && (
-        <div className="text-sm text-green-600">Stock adjusted successfully</div>
-      )}
-
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="inline-flex justify-center py-2 px-4 border border-transparent ring-1 ring-white/10 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-      >
-        {isLoading ? 'Adjusting...' : 'Adjust Stock'}
-      </button>
     </form>
   );
 }

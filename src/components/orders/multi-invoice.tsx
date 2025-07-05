@@ -59,10 +59,12 @@ export function MultiInvoice({ orders }: MultiInvoiceProps) {
                                         className="h-[45mm] py-0 px-1 flex items-start justify-start border-r border-b border-gray-700 last:border-b-0 even:border-r-0 print:border-black"
                                     >
                                         <Invoice
+                                            businessName="Your Company"
+                                            businessAddress="Your Address"
+                                            businessPhone="Your Phone"
                                             order={order}
                                             isMultiPrint={true}
-                                            invoiceNumber={invoiceNumber}
-                                            totalInvoices={totalInvoices}
+                                            invoiceNumber={String(invoiceNumber)}
                                         />
                                     </div>
                                 );

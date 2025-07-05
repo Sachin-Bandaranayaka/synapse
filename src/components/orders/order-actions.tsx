@@ -1,33 +1,36 @@
 'use client';
 
 import { useState } from 'react';
-import { ShippingService, type CourierType } from '@/lib/shipping';
+import { User } from 'next-auth';
+import { type CourierType, ShippingService } from '@/lib/shipping';
 
 interface OrderActionsProps {
   order: any;
+  user: User;
 }
 
-export function OrderActions({ order }: OrderActionsProps) {
+export function OrderActions({ order, user }: OrderActionsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Permission Checks
+  const canEdit = user.role === 'ADMIN' || user.permissions?.includes('EDIT_ORDERS');
+  const canUpdateShipping = user.role === 'ADMIN' || user.permissions?.includes('UPDATE_SHIPPING_STATUS');
+  const canGenerateInvoice = user.role === 'ADMIN' || user.permissions?.includes('EDIT_ORDERS') || user.permissions?.includes('CREATE_ORDERS');
+
 
   const handleStatusUpdate = async (status: string) => {
     setIsLoading(true);
     setError(null);
-
     try {
       const response = await fetch(`/api/orders/${order.id}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-
       if (!response.ok) {
         throw new Error('Failed to update order status');
       }
-
       window.location.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -63,7 +66,9 @@ export function OrderActions({ order }: OrderActionsProps) {
     }
   };
 
+  // --- FIX: DEFINING THE MISSING FUNCTION ---
   const handleGenerateInvoice = async () => {
+    // This function opens the API route for the invoice in a new browser tab.
     window.open(`/api/orders/${order.id}/invoice`, '_blank');
   };
 
@@ -75,39 +80,42 @@ export function OrderActions({ order }: OrderActionsProps) {
         <select
           value={order.status}
           onChange={(e) => handleStatusUpdate(e.target.value)}
-          disabled={isLoading}
-          className="block w-full rounded-md border-gray-600 bg-gray-700 py-1.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
+          disabled={isLoading || !canEdit}
+          className="block w-full rounded-md border-gray-600 bg-gray-700 py-1.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <option key="pending" value="PENDING">Pending</option>
-          <option key="confirmed" value="CONFIRMED">Confirmed</option>
-          <option key="shipped" value="SHIPPED">Shipped</option>
-          <option key="delivered" value="DELIVERED">Delivered</option>
-          <option key="returned" value="RETURNED">Returned</option>
-          <option key="cancelled" value="CANCELLED">Cancelled</option>
+          <option value="PENDING">Pending</option>
+          <option value="CONFIRMED">Confirmed</option>
+          <option value="SHIPPED">Shipped</option>
+          <option value="DELIVERED">Delivered</option>
+          <option value="RETURNED">Returned</option>
+          <option value="CANCELLED">Cancelled</option>
         </select>
       </div>
 
-      {order.status === 'CONFIRMED' && (
+      {order.status === 'CONFIRMED' && canUpdateShipping && (
         <div className="relative inline-block text-left ml-2">
           <select
             onChange={(e) => handleShipment(e.target.value as CourierType)}
             disabled={isLoading}
             className="block w-full rounded-md border-gray-600 bg-gray-700 py-1.5 pl-3 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
           >
-            <option key="empty" value="">Ship via...</option>
-            <option key="farda" value="FARDA_EXPRESS">Farda Express</option>
-            <option key="trans" value="TRANS_EXPRESS">Trans Express</option>
-            <option key="royal" value="ROYAL_EXPRESS">Royal Express</option>
+            <option value="">Ship via...</option>
+            <option value="FARDA_EXPRESS">Farda Express</option>
+            <option value="TRANS_EXPRESS">Trans Express</option>
+            <option value="ROYAL_EXPRESS">Royal Express</option>
           </select>
         </div>
       )}
-
-      <button
-        onClick={handleGenerateInvoice}
-        className="text-blue-400 hover:text-blue-300"
-      >
-        Generate Invoice
-      </button>
+      
+      {/* Conditionally render the button based on permission */}
+      {canGenerateInvoice && (
+        <button
+          onClick={handleGenerateInvoice}
+          className="text-blue-400 hover:text-blue-300 text-sm"
+        >
+          Invoice
+        </button>
+      )}
     </div>
   );
 }

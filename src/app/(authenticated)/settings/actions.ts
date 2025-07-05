@@ -1,58 +1,50 @@
-// src/app/(authenticated)/settings/actions.ts
-
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+// --- FIX: Import the global prisma client, not the scoped one ---
+import { prisma } from '@/lib/prisma'; 
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
 
-const SettingsSchema = z.object({
-  businessName: z.string().optional(),
-  logoUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
-  backgroundColor: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, { message: "Must be a valid hex color code."}).optional().or(z.literal('')),
-  cardColor: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, { message: "Must be a valid hex color code."}).optional().or(z.literal('')),
-  fontColor: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, { message: "Must be a valid hex color code."}).optional().or(z.literal('')),
-  // API keys
-  fardaExpressClientId: z.string().optional(),
-  fardaExpressApiKey: z.string().optional(),
-  transExpressUsername: z.string().optional(),
-  transExpressPassword: z.string().optional(),
-  royalExpressApiKey: z.string().optional(),
-});
-
-export async function updateTenantSettings(prevState: any, formData: FormData) {
+export async function updateTenantSettings(
+  prevState: { message: string, status: 'error' | 'success' } | undefined,
+  formData: FormData
+) {
   const session = await getSession();
-  if (!session?.user?.tenantId) {
+
+  // The authorization check remains the same
+  if (!session?.user?.tenantId || session.user.role !== 'ADMIN') {
     return { status: 'error', message: 'Unauthorized' };
   }
 
-  const validatedFields = SettingsSchema.safeParse(Object.fromEntries(formData.entries()));
-
-  if (!validatedFields.success) {
-    return { status: 'error', errors: validatedFields.error.flatten().fieldErrors };
-  }
-
+  const dataToUpdate = {
+    businessName: formData.get('businessName') as string,
+    businessAddress: formData.get('businessAddress') as string,
+    businessPhone: formData.get('businessPhone') as string,
+    invoicePrefix: formData.get('invoicePrefix') as string,
+    fardaExpressClientId: formData.get('fardaExpressClientId') as string,
+    fardaExpressApiKey: formData.get('fardaExpressApiKey') as string,
+    transExpressUsername: formData.get('transExpressUsername') as string,
+    transExpressPassword: formData.get('transExpressPassword') as string,
+    royalExpressApiKey: formData.get('royalExpressApiKey') as string,
+  };
+  
   try {
+    // --- FIX: We are now using the global 'prisma' client directly ---
+    // This bypasses the getScopedPrismaClient function and prevents the extra
+    // 'tenantId' from being added to the 'where' clause.
     await prisma.tenant.update({
-      where: { id: session.user.tenantId },
-      data: {
-        businessName: validatedFields.data.businessName || null,
-        logoUrl: validatedFields.data.logoUrl || null,
-        backgroundColor: validatedFields.data.backgroundColor || null,
-        cardColor: validatedFields.data.cardColor || null,
-        fontColor: validatedFields.data.fontColor || null,
-        fardaExpressClientId: validatedFields.data.fardaExpressClientId || null,
-        fardaExpressApiKey: validatedFields.data.fardaExpressApiKey || null,
-        transExpressUsername: validatedFields.data.transExpressUsername || null,
-        transExpressPassword: validatedFields.data.transExpressPassword || null,
-        royalExpressApiKey: validatedFields.data.royalExpressApiKey || null,
+      where: {
+        id: session.user.tenantId, 
       },
+      data: dataToUpdate,
     });
 
     revalidatePath('/settings');
-    return { status: 'success', message: 'Settings updated successfully!' };
+    return { status: 'success', message: 'Settings updated successfully.' };
+
   } catch (error) {
-    return { status: 'error', message: 'Database error: Failed to update settings.' };
+    console.error('Error updating tenant settings:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown database error occurred.';
+    return { status: 'error', message: `Failed to update settings: ${errorMessage}` };
   }
 }

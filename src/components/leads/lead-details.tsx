@@ -28,7 +28,7 @@ interface Order {
     createdAt: Date;
 }
 
-interface Lead {
+export interface Lead {
     id: string;
     csvData: {
         name: string;
