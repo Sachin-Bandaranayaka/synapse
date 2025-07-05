@@ -1,5 +1,3 @@
-// src/app/(superadmin)/superadmin/create/actions.ts
-
 'use server';
 
 import { prisma } from '@/lib/prisma';
@@ -9,13 +7,12 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-// Zod schema now includes the optional referredById
 const CreateTenantSchema = z.object({
   tenantName: z.string().min(3, 'Tenant name must be at least 3 characters.'),
   adminName: z.string().min(3, 'Admin name must be at least 3 characters.'),
   adminEmail: z.string().email('Invalid email address.'),
   adminPassword: z.string().min(8, 'Password must be at least 8 characters.'),
-  referredById: z.string().optional(), // New optional field
+  referredById: z.string().optional(),
 });
 
 export async function createTenant(prevState: any, formData: FormData) {
@@ -39,7 +36,6 @@ export async function createTenant(prevState: any, formData: FormData) {
       const newTenant = await tx.tenant.create({
         data: {
           name: tenantName,
-          // Conditionally connect the referrer if one was selected
           ...(referredById && {
             referredBy: {
               connect: { id: referredById }
@@ -60,9 +56,16 @@ export async function createTenant(prevState: any, formData: FormData) {
     });
 
   } catch (error) {
+    console.error("Error creating tenant:", error);
     return { message: 'Database Error: Failed to create tenant.' };
   }
 
-  revalidatePath('/superadmin/users');
-  redirect('/superadmin/users');
+  // --- FIX: Revalidate all pages that show tenant/user data ---
+  revalidatePath('/superadmin');          // Revalidate the main dashboard
+  revalidatePath('/superadmin/tenants');   // Revalidate the tenants list page
+  revalidatePath('/superadmin/users');     // This was already here
+  revalidatePath('/superadmin/hierarchy'); // Revalidate the hierarchy page
+
+  // Redirect to the tenants list, which is a more logical destination
+  redirect('/superadmin/tenants');
 }
