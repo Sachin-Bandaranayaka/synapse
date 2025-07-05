@@ -31,7 +31,7 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
     };
 
     return (
-        <div className="space-y-6">
+        <div className="container mx-auto px-4 py-8 space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold text-white">Dashboard</h1>
                 <div className="flex items-center space-x-4">

@@ -60,12 +60,12 @@ export async function createTenant(prevState: any, formData: FormData) {
     return { message: 'Database Error: Failed to create tenant.' };
   }
 
-  // --- FIX: Revalidate all pages that show tenant/user data ---
-  revalidatePath('/superadmin');          // Revalidate the main dashboard
-  revalidatePath('/superadmin/tenants');   // Revalidate the tenants list page
-  revalidatePath('/superadmin/users');     // This was already here
-  revalidatePath('/superadmin/hierarchy'); // Revalidate the hierarchy page
+  // Revalidate all pages that show tenant/user data
+  revalidatePath('/superadmin');
+  revalidatePath('/superadmin/tenants');
+  revalidatePath('/superadmin/users');
+  revalidatePath('/superadmin/hierarchy');
 
-  // Redirect to the tenants list, which is a more logical destination
-  redirect('/superadmin/tenants');
+  // --- FIX: Redirect to the main dashboard, which we know exists ---
+  redirect('/superadmin');
 }

@@ -62,7 +62,7 @@ export default function SearchPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="container mx-auto px-4 py-8 space-y-6">
             <div>
                 <h1 className="text-2xl font-semibold text-gray-100">Customer Search</h1>
                 <p className="mt-2 text-sm text-gray-400">

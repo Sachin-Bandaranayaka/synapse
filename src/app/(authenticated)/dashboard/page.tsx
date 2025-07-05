@@ -1,3 +1,5 @@
+// src/app/(authenticated)/dashboard/page.tsx
+
 import { getSession } from "@/lib/auth";
 import { getScopedPrismaClient } from "@/lib/prisma";
 import { redirect } from "next/navigation";
