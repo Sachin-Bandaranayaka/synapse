@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { LeadsChart } from '@/components/dashboard/leads-chart';
-import Link from 'next/link'; // Import Link for navigation
+import Link from 'next/link';
 
 interface PeriodStats {
     orders: number;
@@ -13,7 +13,6 @@ interface PeriodStats {
     conversionRate: number;
 }
 
-// --- FIX: Update the main data interface to include the new stock counts ---
 interface DashboardData {
     daily: PeriodStats;
     weekly: PeriodStats;
@@ -45,29 +44,36 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
 
     const currentData = initialData[activeFilter];
 
+    // --- NEW: Define button styles based on stock counts ---
+    const lowStockStyles = initialData.lowStockCount > 0
+        ? "bg-orange-500/10 text-orange-300 ring-orange-500/20 hover:bg-orange-500/20"
+        : "bg-green-500/10 text-green-300 ring-green-500/20 hover:bg-green-500/20";
+
+    const noStockStyles = initialData.noStockCount > 0
+        ? "bg-red-500/10 text-red-300 ring-red-500/20 hover:bg-red-500/20"
+        : "bg-green-500/10 text-green-300 ring-green-500/20 hover:bg-green-500/20";
+
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold text-white">Dashboard</h1>
-                {/* Refresh button can be added here if needed */}
             </div>
 
             <div>
-                 {/* --- FIX: Restructured the header to include stock counts --- */}
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-medium text-gray-200 w-1/3">Overview</h2>
                     
-                    {/* NEW: Centered stock count buttons */}
                     <div className="flex items-center justify-center space-x-4 w-1/3">
-                        <Link href="/products" className="flex items-center space-x-2 rounded-lg bg-orange-500/10 px-3 py-2 text-sm font-semibold text-orange-300 ring-1 ring-inset ring-orange-500/20 hover:bg-orange-500/20 transition-colors">
+                        {/* --- FIX: Apply conditional styles to buttons --- */}
+                        <Link href="/products" className={`flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-semibold ring-1 ring-inset transition-colors ${lowStockStyles}`}>
                             <span>Low Stock</span>
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500/50 text-xs text-white">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/20 text-xs">
                                 {initialData.lowStockCount}
                             </span>
                         </Link>
-                        <Link href="/inventory" className="flex items-center space-x-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300 ring-1 ring-inset ring-red-500/20 hover:bg-red-500/20 transition-colors">
+                        <Link href="/inventory" className={`flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-semibold ring-1 ring-inset transition-colors ${noStockStyles}`}>
                             <span>No Stock</span>
-                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500/50 text-xs text-white">
+                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/20 text-xs">
                                 {initialData.noStockCount}
                             </span>
                         </Link>
@@ -97,7 +103,6 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
                 </div>
             </div>
 
-            {/* Lead Conversion Card remains the same */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                 <h2 className="text-lg font-medium text-white mb-4">Lead Conversion</h2>
                 
