@@ -1,6 +1,11 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse, NextRequest } from 'next/server';
 import { RoyalExpressProvider } from '@/lib/shipping/royal-express';
 import { getValidStateNames } from '@/lib/shipping/royal-express-locations';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/shipping/royal-express/states
@@ -8,8 +13,40 @@ import { getValidStateNames } from '@/lib/shipping/royal-express-locations';
  */
 export async function GET(request: NextRequest) {
     try {
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user) {
+            return new NextResponse('Unauthorized', { status: 401 });
+        }
+
+        const tenantId = session.user.tenantId;
+
+        const tenant = await prisma.tenant.findUnique({
+            where: { id: tenantId },
+            select: {
+                royalExpressApiKey: true,
+            },
+        });
+
+        if (!tenant || !tenant.royalExpressApiKey) {
+            return NextResponse.json(
+                { error: 'Royal Express API key not configured for this tenant' },
+                { status: 500 }
+            );
+        }
+
+        const [royalEmail, royalPassword] = tenant.royalExpressApiKey.split(':');
+        if (!royalEmail || !royalPassword) {
+            return NextResponse.json(
+                { error: 'Royal Express API key format invalid (expected email:password)' },
+                { status: 500 }
+            );
+        }
+
+        const royalExpressService = new RoyalExpressProvider(royalEmail, royalPassword);
+
         // First try using the getValidStateNames helper
-        const stateNames = await getValidStateNames();
+        const stateNames = await getValidStateNames(royalExpressService);
 
         if (stateNames && stateNames.length > 0) {
             return NextResponse.json({
@@ -18,8 +55,9 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        // If that fails, try direct API call
+        // If that fails, try direct API call (this part might be redundant after refactoring)
         console.log('Helper function did not return states, trying direct API call');
+        // Note: RoyalExpressProvider.fetchValidStates() might still use env vars, consider removing or updating it.
         const directStates = await RoyalExpressProvider.fetchValidStates();
 
         if (directStates && directStates.length > 0) {
@@ -42,4 +80,4 @@ export async function GET(request: NextRequest) {
             error: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });
     }
-} 
+}

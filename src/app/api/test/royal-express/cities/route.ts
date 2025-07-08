@@ -12,10 +12,10 @@ export async function GET(request: Request) {
         const stateId = url.searchParams.get('state_id');
 
         // Set up the provider with credentials from env vars
-        const email = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_EMAIL || 'janithbh123@gmail.com';
-        const password = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_PASSWORD || '905611623';
-        const apiKey = `${email}:${password}`;
-        const provider = new RoyalExpressProvider(apiKey, tenant || undefined);
+        // For testing purposes, use a placeholder or fetch from a test tenant if available
+        const testEmail = 'test@example.com'; // Replace with a valid test email if needed
+        const testPassword = 'testpassword'; // Replace with a valid test password if needed
+        const provider = new RoyalExpressProvider(testEmail, testPassword, tenant || undefined);
 
         console.log('Fetching cities with tenant:', tenant || 'default');
 

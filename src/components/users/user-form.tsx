@@ -1,160 +1,148 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Role } from '@prisma/client';
+
+const permissionsList = [
+    "VIEW_DASHBOARD", "VIEW_PRODUCTS", "EDIT_PRODUCTS", "DELETE_PRODUCTS",
+    "EDIT_STOCK_LEVELS", "VIEW_LEADS", "CREATE_LEADS", "EDIT_LEADS", "DELETE_LEADS",
+    "VIEW_ORDERS", "CREATE_ORDERS", "EDIT_ORDERS", "DELETE_ORDERS",
+    "VIEW_SHIPPING", "UPDATE_SHIPPING_STATUS", "VIEW_REPORTS", "EXPORT_REPORTS",
+    "MANAGE_USERS", "MANAGE_SETTINGS"
+];
+
+const userSchema = z.object({
+  name: z.string().min(2, 'Name is required'),
+  email: z.string().email('Invalid email address'),
+  role: z.nativeEnum(Role),
+  password: z.string().optional(),
+  permissions: z.array(z.string()).optional(),
+});
+
+type UserFormData = z.infer<typeof userSchema>;
 
 interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  role: 'ADMIN' | 'TEAM_MEMBER';
-  permissions: string[];
+    id: string;
+    name: string | null;
+    email: string;
+    role: Role;
+    permissions: string[];
 }
 
 interface UserFormProps {
-  user: User;
-  onSubmit: (data: any) => Promise<void>;
+  user: User | null; // null for creating, user object for editing
+  onSuccess: () => void;
   onCancel: () => void;
 }
 
-const userUpdateSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  role: z.enum(['ADMIN', 'TEAM_MEMBER']),
-  password: z.string().min(8, 'Password must be at least 8 characters').optional(),
-});
-
-export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
+export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    name: user.name || '',
-    email: user.email,
-    role: user.role,
-    password: '',
+  const { register, handleSubmit, control, formState: { errors } } = useForm<UserFormData>({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      name: user?.name || '',
+      email: user?.email || '',
+      role: user?.role || Role.TEAM_MEMBER,
+      permissions: user?.permissions || [],
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: UserFormData) => {
     setIsLoading(true);
-    setError(null);
+    const apiEndpoint = user ? `/api/users/${user.id}` : '/api/users';
+    const method = user ? 'PUT' : 'POST';
 
     try {
-      // Validate form data
-      const validatedData = userUpdateSchema.parse(formData);
+      const response = await fetch(apiEndpoint, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
 
-      // Remove password if it's empty
-      if (!validatedData.password) {
-        delete validatedData.password;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${user ? 'update' : 'create'} user.`);
       }
 
-      await onSubmit(validatedData);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        setError(err.errors[0].message);
-      } else {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      }
+      toast.success(`User ${user ? 'updated' : 'created'} successfully!`);
+      onSuccess();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'An error occurred.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-400">
-          Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <h2 className="text-xl font-bold text-white">{user ? 'Edit User' : 'Add New User'}</h2>
+      {/* Name and Email fields */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-300">Full Name</label>
+          <input type="text" id="name" {...register('name')} className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md text-white" />
+          {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name.message}</p>}
+        </div>
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email Address</label>
+          <input type="email" id="email" {...register('email')} className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md text-white" />
+          {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>}
+        </div>
       </div>
-
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-400">
-          Email
-        </label>
-        <input
-          type="email"
-          id="email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-400">
-          New Password (optional)
-        </label>
-        <input
-          type="password"
-          id="password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          placeholder="Leave blank to keep current password"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="role" className="block text-sm font-medium text-gray-400">
-          Role
-        </label>
-        <select
-          id="role"
-          value={formData.role}
-          onChange={(e) => setFormData({ ...formData, role: e.target.value as 'ADMIN' | 'TEAM_MEMBER' })}
-          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        >
-          <option key="team-member" value="TEAM_MEMBER">Team Member</option>
-          <option key="admin" value="ADMIN">Admin</option>
-        </select>
-      </div>
-
-      {error && (
-        <div className="rounded-md bg-red-900/50 p-4 text-sm text-red-400 ring-1 ring-red-500">
-          {error}
+      {/* Password field (only for new users) */}
+      {!user && (
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-300">Password</label>
+          <input type="password" id="password" {...register('password')} className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md text-white" />
+          {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>}
         </div>
       )}
-
-      <div className="mt-6 flex justify-end space-x-4">
-        <motion.button
-          type="button"
-          onClick={onCancel}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="inline-flex items-center rounded-md border border-gray-700 px-4 py-2 text-sm font-medium text-gray-400 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        >
-          Cancel
-        </motion.button>
-        <motion.button
-          type="submit"
-          disabled={isLoading}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-        >
-          {isLoading ? (
-            <>
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Saving...
-            </>
-          ) : (
-            'Save Changes'
-          )}
-        </motion.button>
+       {/* Role Selector */}
+      <div>
+        <label htmlFor="role" className="block text-sm font-medium text-gray-300">Role</label>
+        <select id="role" {...register('role')} className="mt-1 block w-full bg-gray-700 border-gray-600 rounded-md text-white">
+          <option value={Role.ADMIN}>Admin</option>
+          <option value={Role.TEAM_MEMBER}>Team Member</option>
+        </select>
+      </div>
+      {/* Permissions Checkboxes */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300">Permissions</label>
+        <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-48 overflow-y-auto p-2 bg-gray-900/50 rounded-md">
+          {permissionsList.map(permission => (
+            <div key={permission} className="flex items-center">
+              <Controller
+                name="permissions"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    type="checkbox"
+                    id={permission}
+                    className="h-4 w-4 rounded"
+                    checked={field.value?.includes(permission)}
+                    onChange={(e) => {
+                      const newPermissions = e.target.checked
+                        ? [...(field.value || []), permission]
+                        : (field.value || []).filter(p => p !== permission);
+                      field.onChange(newPermissions);
+                    }}
+                  />
+                )}
+              />
+              <label htmlFor={permission} className="ml-2 text-sm text-gray-300">{permission.replace(/_/g, ' ').toLowerCase()}</label>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex justify-end gap-4 pt-4">
+        <button type="button" onClick={onCancel} className="px-4 py-2 text-sm rounded-md bg-gray-600 text-white hover:bg-gray-500">Cancel</button>
+        <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-500 disabled:opacity-50">
+          {isLoading ? 'Saving...' : (user ? 'Update User' : 'Create User')}
+        </button>
       </div>
     </form>
   );

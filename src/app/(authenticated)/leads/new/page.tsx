@@ -1,6 +1,6 @@
 // src/app/(authenticated)/leads/new/page.tsx
 
-import { getScopedPrismaClient } from '@/lib/prisma'; // Import our scoped client
+import { getScopedPrismaClient } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
@@ -15,34 +15,35 @@ export const metadata: Metadata = {
 export default async function NewLeadPage() {
     const session = await getServerSession(authOptions);
 
-    // 1. Secure the page and get tenantId
     if (!session?.user?.tenantId) {
         return redirect('/auth/signin');
     }
+    
+    // Permission check for creating leads
+    if (session.user.role !== 'ADMIN' && !session.user.permissions?.includes('CREATE_LEADS')) {
+        return redirect('/unauthorized');
+    }
 
-    // 2. Use the scoped client to fetch products
     const prisma = getScopedPrismaClient(session.user.tenantId);
 
-    // 3. This query now securely fetches products for the current tenant ONLY
+    // --- FIX: The query now fetches all necessary product fields ---
     const products = await prisma.product.findMany({
+        where: {
+            isActive: true,
+        },
         orderBy: {
             name: 'asc'
         },
-        select: {
-            id: true,
-            name: true,
-            code: true,
-            price: true
-        }
+        // Remove the 'select' block to fetch all scalar fields,
+        // including stock and lowStockAlert.
     });
 
-    // The rest of the component remains the same
     return (
         <div className="space-y-6 p-4 sm:p-6 lg:p-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">New Lead</h1>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <h1 className="text-2xl font-semibold text-white">New Lead</h1>
+                    <p className="mt-2 text-sm text-gray-400">
                         Add a new lead to the system
                     </p>
                 </div>

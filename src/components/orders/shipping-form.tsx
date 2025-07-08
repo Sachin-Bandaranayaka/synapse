@@ -30,9 +30,24 @@ interface ShippingFormProps {
         quantity: number;
         discount?: number;
     };
+    fardaExpressClientId?: string;
+    fardaExpressApiKey?: string;
+    transExpressUsername?: string;
+    transExpressPassword?: string;
+    royalExpressApiKey?: string;
 }
 
-export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, order }: ShippingFormProps) {
+export function ShippingForm({
+    orderId,
+    currentProvider,
+    currentTrackingNumber,
+    order,
+    fardaExpressClientId,
+    fardaExpressApiKey,
+    transExpressUsername,
+    transExpressPassword,
+    royalExpressApiKey,
+}: ShippingFormProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -94,7 +109,19 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
             setIsLoadingRoyalLocations(true);
             try {
                 console.log('Fetching Royal Express states...');
-                const allStates = await getAllStates();
+                if (!royalExpressApiKey) {
+                    console.warn('Royal Express API key not provided, skipping state fetch.');
+                    setIsLoadingRoyalLocations(false);
+                    return;
+                }
+                const [royalEmail, royalPassword] = royalExpressApiKey.split(':');
+                if (!royalEmail || !royalPassword) {
+                    console.error('Royal Express API key format invalid (expected email:password).');
+                    setIsLoadingRoyalLocations(false);
+                    return;
+                }
+                const royalExpressService = new RoyalExpressProvider(royalEmail, royalPassword);
+                const allStates = await getAllStates(royalExpressService);
                 console.log('States loaded:', allStates);
                 setStates(allStates);
 
@@ -172,8 +199,20 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
 
             setIsLoadingRoyalLocations(true);
             try {
+                if (!royalExpressApiKey) {
+                    console.warn('Royal Express API key not provided, skipping city fetch.');
+                    setIsLoadingRoyalLocations(false);
+                    return;
+                }
+                const [royalEmail, royalPassword] = royalExpressApiKey.split(':');
+                if (!royalEmail || !royalPassword) {
+                    console.error('Royal Express API key format invalid (expected email:password).');
+                    setIsLoadingRoyalLocations(false);
+                    return;
+                }
+                const royalExpressService = new RoyalExpressProvider(royalEmail, royalPassword);
                 console.log(`Fetching cities for state: ${selectedState}`);
-                const cities = await getCitiesByState(selectedState);
+                const cities = await getCitiesByState(royalExpressService, selectedState);
                 console.log('Royal Express cities loaded:', cities);
                 setCitiesInState(cities);
 
@@ -266,7 +305,10 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
 
         try {
             if (provider === ShippingProvider.FARDA_EXPRESS) {
-                const fardaService = new FardaExpressService();
+                if (!fardaExpressClientId || !fardaExpressApiKey) {
+                    throw new Error('Farda Express credentials not provided.');
+                }
+                const fardaService = new FardaExpressService(fardaExpressClientId, fardaExpressApiKey);
                 const timestamp = new Date().getTime().toString().slice(-6);
                 const uniqueId = orderId.slice(0, 4).toUpperCase();
                 const formattedOrderId = `JH${timestamp}${uniqueId}`;
@@ -337,8 +379,16 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
             } else if (provider === ShippingProvider.TRANS_EXPRESS) {
                 try {
                     console.log('Creating Trans Express shipment...');
-                    const transExpressApiKey = process.env.NEXT_PUBLIC_TRANS_EXPRESS_API_KEY || 'i0x5rQLMYRn4KNYp69hslAdAuLdDzTcrRSGnqtfWfNNeCQN9DNggZ9F4hdTOhxACUSM9hcmz7PvXDhVJ';
-                    const transExpressService = new TransExpressProvider(transExpressApiKey);
+                    if (!transExpressUsername || !transExpressPassword) {
+                        throw new Error('Trans Express credentials not provided.');
+                    }
+                    if (!transExpressUsername || !transExpressPassword) {
+                        throw new Error('Trans Express credentials not provided.');
+                    }
+                    if (!transExpressUsername || !transExpressPassword) {
+                        throw new Error('Trans Express credentials not provided.');
+                    }
+                    const transExpressService = new TransExpressProvider(transExpressUsername, transExpressPassword);
 
                     // Generate a unique order number
                     const orderNo = parseInt(`${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 100)}`);
@@ -412,11 +462,14 @@ export function ShippingForm({ orderId, currentProvider, currentTrackingNumber, 
             } else if (provider === ShippingProvider.ROYAL_EXPRESS) {
                 try {
                     console.log('Creating Royal Express (Curfox) shipment...');
-                    const royalExpressApiKey = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_API_KEY ||
-                        `${process.env.NEXT_PUBLIC_ROYAL_EXPRESS_EMAIL}:${process.env.NEXT_PUBLIC_ROYAL_EXPRESS_PASSWORD}` ||
-                        'default@example.com:password';
-
-                    const royalExpressService = new RoyalExpressProvider(royalExpressApiKey);
+                    if (!royalExpressApiKey) {
+                        throw new Error('Royal Express API key not provided.');
+                    }
+                    const [royalEmail, royalPassword] = royalExpressApiKey.split(':');
+                    if (!royalEmail || !royalPassword) {
+                        throw new Error('Royal Express API key format invalid (expected email:password).');
+                    }
+                    const royalExpressService = new RoyalExpressProvider(royalEmail, royalPassword);
 
                     // Calculate the COD amount
                     const codAmount = (order.product.price * order.quantity) - (order.discount || 0);

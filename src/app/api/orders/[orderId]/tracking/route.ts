@@ -38,6 +38,15 @@ export async function GET(
                 deliveredAt: true,
                 trackingUpdates: true,
                 tenantId: true,
+                tenant: {
+                    select: {
+                        fardaExpressClientId: true,
+                        fardaExpressApiKey: true,
+                        transExpressUsername: true,
+                        transExpressPassword: true,
+                        royalExpressApiKey: true,
+                    },
+                },
             },
         });
 
@@ -58,7 +67,17 @@ export async function GET(
         // Get tracking information based on the shipping provider
         let trackingInfo;
         if (order.shippingProvider === 'FARDA_EXPRESS') {
-            const fardaService = new FardaExpressService();
+            const fardaClientId = order.tenant?.fardaExpressClientId;
+            const fardaApiKey = order.tenant?.fardaExpressApiKey;
+
+            if (!fardaClientId || !fardaApiKey) {
+                console.error(`Farda Express credentials missing for tenant ${order.tenantId}`);
+                return NextResponse.json(
+                    { error: 'Farda Express credentials missing' },
+                    { status: 500 }
+                );
+            }
+            const fardaService = new FardaExpressService(fardaClientId, fardaApiKey);
             trackingInfo = await fardaService.trackShipment(order.trackingNumber);
 
             // Update order status based on tracking info
@@ -101,16 +120,18 @@ export async function GET(
             return NextResponse.json(updatedOrder);
         } else if (order.shippingProvider === 'TRANS_EXPRESS') {
             try {
-                const transApiKey = process.env.TRANS_EXPRESS_API_KEY;
-                if (!transApiKey) {
-                    console.error('Trans Express API key not configured');
+                const transUsername = order.tenant?.transExpressUsername;
+                const transPassword = order.tenant?.transExpressPassword;
+
+                if (!transUsername || !transPassword) {
+                    console.error(`Trans Express credentials missing for tenant ${order.tenantId}`);
                     return NextResponse.json(
-                        { error: 'Trans Express API key not configured' },
+                        { error: 'Trans Express credentials missing' },
                         { status: 500 }
                     );
                 }
 
-                const transExpressService = new TransExpressProvider(transApiKey);
+                const transExpressService = new TransExpressProvider(transUsername, transPassword);
                 console.log('Tracking Trans Express shipment:', order.trackingNumber);
 
                 try {
@@ -178,16 +199,26 @@ export async function GET(
             }
         } else if (order.shippingProvider === 'ROYAL_EXPRESS') {
             try {
-                const royalApiKey = process.env.ROYAL_EXPRESS_API_KEY;
+                const royalApiKey = order.tenant?.royalExpressApiKey;
+
                 if (!royalApiKey) {
-                    console.error('Royal Express API key not configured');
+                    console.error(`Royal Express API key missing for tenant ${order.tenantId}`);
                     return NextResponse.json(
-                        { error: 'Royal Express API key not configured' },
+                        { error: 'Royal Express API key missing' },
                         { status: 500 }
                     );
                 }
 
-                const royalExpressService = new RoyalExpressProvider(royalApiKey);
+                const [royalEmail, royalPassword] = royalApiKey.split(':');
+                if (!royalEmail || !royalPassword) {
+                    console.error(`Royal Express API key format invalid for tenant ${order.tenantId}`);
+                    return NextResponse.json(
+                        { error: 'Royal Express API key format invalid (expected email:password)' },
+                        { status: 500 }
+                    );
+                }
+
+                const royalExpressService = new RoyalExpressProvider(royalEmail, royalPassword);
                 console.log('Tracking Royal Express shipment:', order.trackingNumber);
 
                 const shipmentStatus = await royalExpressService.trackShipment(order.trackingNumber);

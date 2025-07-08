@@ -11,6 +11,7 @@ import {
   HomeIcon, ShoppingBagIcon, ArchiveBoxIcon, ClipboardDocumentListIcon,
   UsersIcon, ChartBarIcon, MagnifyingGlassIcon, TruckIcon, CogIcon,
   ArrowRightOnRectangleIcon,
+  Bars3Icon, // --- FIX: Import the hamburger menu icon
 } from '@heroicons/react/24/outline';
 
 function NavLink({ href, icon, children, isActive }: { href: string; icon: React.ReactNode; children: React.ReactNode; isActive: boolean; }) {
@@ -51,17 +52,25 @@ export default function AuthenticatedUI({ children, tenant }: { children: React.
 
   return (
     <div className="flex min-h-screen bg-gray-900">
-      {/* --- FIX: Added 'print:hidden' to hide the sidebar when printing --- */}
       <aside className={`print:hidden sticky top-0 h-screen flex-shrink-0 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'} bg-gray-800 text-white`}>
-        <div className={`flex items-center gap-4 p-6 border-b border-gray-700 ${!isSidebarOpen && 'justify-center'}`}>
-            {tenant.logoUrl && (
-                <Image src={tenant.logoUrl} alt="Logo" width={isSidebarOpen ? 40 : 32} height={isSidebarOpen ? 40 : 32} className="rounded-md object-contain"/>
-            )}
+        {/* --- FIX: Updated header with toggle button --- */}
+        <div className={`flex items-center p-4 border-b border-gray-700 ${isSidebarOpen ? 'justify-between' : 'justify-center'}`}>
             {isSidebarOpen && (
-              <h1 className="text-xl font-bold text-white truncate">
-                  {tenant.businessName || 'Dashboard'}
-              </h1>
+                <div className="flex items-center gap-3">
+                    {tenant.logoUrl && (
+                        <Image src={tenant.logoUrl} alt="Logo" width={32} height={32} className="rounded-md object-contain"/>
+                    )}
+                    <h1 className="text-xl font-bold text-white truncate">
+                        {tenant.businessName || 'Dashboard'}
+                    </h1>
+                </div>
             )}
+            <button 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                className="p-2 rounded-md hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-white"
+            >
+                <Bars3Icon className="h-6 w-6 text-gray-300" />
+            </button>
         </div>
         <nav className="flex-grow space-y-1 px-4 mt-4">
             {(userRole === 'ADMIN' || userPermissions.includes('VIEW_DASHBOARD')) && <NavLink href="/dashboard" icon={<HomeIcon className="h-6 w-6" />} isActive={pathname === '/dashboard'}>{isSidebarOpen && 'Dashboard'}</NavLink>}
@@ -82,16 +91,17 @@ export default function AuthenticatedUI({ children, tenant }: { children: React.
             )}
         </nav>
         <div className="p-4 mt-auto border-t border-gray-700">
-            <button onClick={() => signOut({ callbackUrl: '/auth/signin' })} className="flex w-full items-center space-x-4 rounded-lg px-4 py-2 text-gray-400 transition-colors hover:bg-gray-700/50 hover:text-white">
+            <button onClick={() => signOut({ callbackUrl: '/auth/signin' })} className={`flex w-full items-center space-x-4 rounded-lg px-4 py-2 text-gray-400 transition-colors hover:bg-gray-700/50 hover:text-white ${!isSidebarOpen && 'justify-center'}`}>
               <ArrowRightOnRectangleIcon className="h-6 w-6" />
               {isSidebarOpen && <span className="font-medium">Logout</span>}
             </button>
         </div>
       </aside>
 
-      {/* The main content area will now correctly contain the printable and non-printable sections */}
       <main className="flex-1 overflow-x-hidden">
-        {children}
+        <div className="p-6 sm:p-8 lg:p-10">
+            {children}
+        </div>
       </main>
     </div>
   );

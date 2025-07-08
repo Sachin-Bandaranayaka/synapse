@@ -19,6 +19,10 @@ export default async function InventoryPage() {
   const prisma = getScopedPrismaClient(session.user.tenantId);
 
   const products = await prisma.product.findMany({
+    // --- FIX: Add a 'where' clause to only fetch active products ---
+    where: {
+      isActive: true,
+    },
     orderBy: {
       name: 'asc'
     },
@@ -32,6 +36,5 @@ export default async function InventoryPage() {
     }
   });
 
-  // --- FIX: Pass the user object to the client component ---
   return <InventoryClient initialProducts={products} user={session.user as User} />;
 }

@@ -44,6 +44,15 @@ export async function GET(request: Request) {
                 customerPhone: true,
                 customerEmail: true,
                 tenantId: true,
+                tenant: {
+                    select: {
+                        fardaExpressClientId: true,
+                        fardaExpressApiKey: true,
+                        transExpressUsername: true,
+                        transExpressPassword: true,
+                        royalExpressApiKey: true,
+                    },
+                },
             },
         });
 
@@ -53,7 +62,18 @@ export async function GET(request: Request) {
             orders.map(async (order) => {
                 try {
                     if (order.shippingProvider === ShippingProvider.FARDA_EXPRESS) {
-                        const fardaService = new FardaExpressService();
+                        const fardaClientId = order.tenant?.fardaExpressClientId;
+                        const fardaApiKey = order.tenant?.fardaExpressApiKey;
+
+                        if (!fardaClientId || !fardaApiKey) {
+                            console.warn(`Farda Express credentials missing for tenant ${order.tenantId}`);
+                            return {
+                                orderId: order.id,
+                                success: false,
+                                error: 'Farda Express credentials missing',
+                            };
+                        }
+                        const fardaService = new FardaExpressService(fardaClientId, fardaApiKey);
                         const shipmentStatus = await fardaService.trackShipment(order.trackingNumber!);
 
                         // Update order status
@@ -79,16 +99,19 @@ export async function GET(request: Request) {
                         };
                     } else if (order.shippingProvider === ShippingProvider.TRANS_EXPRESS) {
                         try {
-                            const transApiKey = process.env.TRANS_EXPRESS_API_KEY;
-                            if (!transApiKey) {
+                            const transUsername = order.tenant?.transExpressUsername;
+                            const transPassword = order.tenant?.transExpressPassword;
+
+                            if (!transUsername || !transPassword) {
+                                console.warn(`Trans Express credentials missing for tenant ${order.tenantId}`);
                                 return {
                                     orderId: order.id,
                                     success: false,
-                                    error: 'Trans Express API key not configured',
+                                    error: 'Trans Express credentials missing',
                                 };
                             }
 
-                            const transExpressService = new TransExpressProvider(transApiKey);
+                            const transExpressService = new TransExpressProvider(transUsername, transPassword);
                             const shipmentStatus = await transExpressService.trackShipment(order.trackingNumber!);
 
                             // Update order status
@@ -122,8 +145,10 @@ export async function GET(request: Request) {
                         }
                     } else if (order.shippingProvider === ShippingProvider.ROYAL_EXPRESS) {
                         try {
-                            const royalApiKey = process.env.ROYAL_EXPRESS_API_KEY;
+                            const royalApiKey = order.tenant?.royalExpressApiKey;
+
                             if (!royalApiKey) {
+                                console.warn(`Royal Express API key missing for tenant ${order.tenantId}`);
                                 return {
                                     orderId: order.id,
                                     success: false,
@@ -131,7 +156,17 @@ export async function GET(request: Request) {
                                 };
                             }
 
-                            const royalExpressService = new RoyalExpressProvider(royalApiKey);
+                            const [royalEmail, royalPassword] = royalApiKey.split(':');
+                            if (!royalEmail || !royalPassword) {
+                                console.warn(`Royal Express API key format invalid for tenant ${order.tenantId}`);
+                                return {
+                                    orderId: order.id,
+                                    success: false,
+                                    error: 'Royal Express API key format invalid (expected email:password)',
+                                };
+                            }
+
+                            const royalExpressService = new RoyalExpressProvider(royalEmail, royalPassword);
                             const shipmentStatus = await royalExpressService.trackShipment(order.trackingNumber!);
 
                             // Update order status

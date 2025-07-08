@@ -159,9 +159,6 @@ export function isValidRateCardCombination(originCity: string, destinationCity: 
 }
 
 // Cached data
-let cachedCities: RoyalExpressCity[] | null = null;
-let cachedStates: RoyalExpressState[] | null = null;
-let locationsAPIInstance: RoyalExpressLocations | null = null;
 
 export class RoyalExpressLocations {
     private royalExpress: RoyalExpressProvider;
@@ -368,29 +365,12 @@ export class RoyalExpressLocations {
     }
 }
 
-// Initialize the locations API
-function getLocationsAPI() {
-    if (!locationsAPIInstance) {
-        const email = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_EMAIL || '';
-        const password = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_PASSWORD || '';
-        const apiKey = `${email}:${password}`;
-        const royalExpress = new RoyalExpressProvider(apiKey);
-        locationsAPIInstance = new RoyalExpressLocations(royalExpress);
-    }
-    return locationsAPIInstance;
-}
+
 
 // Helper functions
-export async function getAllStates(): Promise<RoyalExpressState[]> {
+export async function getAllStates(royalExpressProvider: RoyalExpressProvider): Promise<RoyalExpressState[]> {
     try {
-        // If we have cached states, return them
-        if (cachedStates && cachedStates.length > 0) {
-            console.log(`Using ${cachedStates.length} cached states`);
-            return cachedStates;
-        }
-
-        // Get locations API
-        const locationsAPI = getLocationsAPI();
+        const locationsAPI = new RoyalExpressLocations(royalExpressProvider);
 
         // Fetch states directly from the API
         console.log('Fetching states from Royal Express API...');
@@ -398,55 +378,24 @@ export async function getAllStates(): Promise<RoyalExpressState[]> {
 
         if (!states || states.length === 0) {
             console.warn('No states returned from Royal Express API, using fallback data');
-            cachedStates = FALLBACK_ROYAL_EXPRESS_STATES;
             return FALLBACK_ROYAL_EXPRESS_STATES;
         }
 
-        // Cache results
-        cachedStates = states;
-        console.log(`Successfully fetched and cached ${states.length} states from Royal Express API`);
+        console.log(`Successfully fetched ${states.length} states from Royal Express API`);
         return states;
     } catch (error) {
         console.error('Failed to get states, using fallback:', error);
-        cachedStates = FALLBACK_ROYAL_EXPRESS_STATES;
         return FALLBACK_ROYAL_EXPRESS_STATES;
     }
 }
 
-export async function getCitiesByState(stateName: string): Promise<RoyalExpressCity[]> {
+export async function getCitiesByState(royalExpressProvider: RoyalExpressProvider, stateName: string): Promise<RoyalExpressCity[]> {
     try {
-        // First try to use the cached cities if available
-        if (cachedCities && cachedCities.length > 0) {
-            console.log(`Using ${cachedCities.length} cached cities to filter by state: ${stateName}`);
-            const filteredCities = cachedCities.filter(city =>
-                city.state.toLowerCase() === stateName.toLowerCase()
-            );
-            if (filteredCities.length > 0) {
-                return filteredCities;
-            }
-        }
+        const locationsAPI = new RoyalExpressLocations(royalExpressProvider);
+        const cities = await locationsAPI.getCitiesByState(stateName);
 
-        // Try to get cities from API through the locations API
-        try {
-            const locationsAPI = getLocationsAPI();
-            const cities = await locationsAPI.getCitiesByState(stateName);
-
-            if (cities && cities.length > 0) {
-                // Update our cache with these new cities to avoid future API calls
-                if (!cachedCities) cachedCities = [];
-
-                // Add these cities to the cache if they're not already there
-                cities.forEach(city => {
-                    if (!cachedCities?.some(c => c.id === city.id)) {
-                        cachedCities.push(city);
-                    }
-                });
-
-                return cities;
-            }
-        } catch (apiError) {
-            console.error(`API error when fetching cities for state ${stateName}:`, apiError);
-            // Continue to fallback if API call fails
+        if (cities && cities.length > 0) {
+            return cities;
         }
 
         // Use fallback cities filtered by state name
@@ -472,19 +421,11 @@ export async function getCitiesByState(stateName: string): Promise<RoyalExpressC
     }
 }
 
-export async function getAllCities(): Promise<RoyalExpressCity[]> {
+export async function getAllCities(royalExpressProvider: RoyalExpressProvider): Promise<RoyalExpressCity[]> {
     try {
-        // If we have cached cities, return them
-        if (cachedCities) {
-            return cachedCities;
-        }
-
-        // Get locations API
-        const locationsAPI = getLocationsAPI();
+        const locationsAPI = new RoyalExpressLocations(royalExpressProvider);
         // Fetch all cities
         const cities = await locationsAPI.getCities();
-        // Cache results
-        cachedCities = cities;
         return cities;
     } catch (error) {
         console.error('Failed to get all cities, using fallback:', error);
@@ -492,10 +433,9 @@ export async function getAllCities(): Promise<RoyalExpressCity[]> {
     }
 }
 
-export async function getCityById(cityId: number): Promise<RoyalExpressCity | null> {
+export async function getCityById(royalExpressProvider: RoyalExpressProvider, cityId: number): Promise<RoyalExpressCity | null> {
     try {
-        // Get locations API
-        const locationsAPI = getLocationsAPI();
+        const locationsAPI = new RoyalExpressLocations(royalExpressProvider);
         // Fetch city by ID
         return await locationsAPI.getCityById(cityId);
     } catch (error) {
@@ -509,10 +449,10 @@ export async function getCityById(cityId: number): Promise<RoyalExpressCity | nu
  * Useful for debugging and providing helpful error messages
  * @returns Array of valid state names
  */
-export async function getValidStateNames(): Promise<string[]> {
+export async function getValidStateNames(royalExpressProvider: RoyalExpressProvider): Promise<string[]> {
     try {
         // Get all states
-        const states = await getAllStates();
+        const states = await getAllStates(royalExpressProvider);
 
         // Extract just the names and sort them alphabetically
         const stateNames = states.map(state => state.name).sort();

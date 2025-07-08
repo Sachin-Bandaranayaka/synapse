@@ -1,98 +1,76 @@
-import { PrismaClient } from '@prisma/client';
+// src/app/api/users/[id]/route.ts
+
 import { NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { getScopedPrismaClient } from '@/lib/prisma';
+import { z } from 'zod';
 
-// Force dynamic rendering for this route
-export const dynamic = 'force-dynamic';
+const userUpdateSchema = z.object({
+  name: z.string().min(2, 'Name is required'),
+  email: z.string().email('Invalid email address'),
+  role: z.enum(['ADMIN', 'TEAM_MEMBER']),
+  permissions: z.array(z.string()).optional(),
+});
 
-const prisma = new PrismaClient();
-
-export async function PUT(
-    request: Request,
-    { params }: { params: { id: string } }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-
-        if (!session?.user || session.user.role !== 'ADMIN') {
-            return new NextResponse('Unauthorized', { status: 401 });
-        }
-
-        const data = await request.json();
-        const updateData: any = {
-            name: data.name,
-            role: data.role,
-            permissions: data.permissions,
-        };
-
-        // Only update password if provided
-        if (data.password) {
-            updateData.password = await hash(data.password, 12);
-        }
-
-        const user = await prisma.user.update({
-            where: { id: params.id },
-            data: updateData,
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                role: true,
-                permissions: true,
-                createdAt: true,
-            },
-        });
-
-        return NextResponse.json(user);
-    } catch (error) {
-        console.error('Error updating user:', error);
-        return NextResponse.json(
-            { error: 'Failed to update user' },
-            { status: 500 }
-        );
+// --- UPDATE User ---
+export async function PUT(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.tenantId || session.user.role !== 'ADMIN') {
+      return new NextResponse('Unauthorized', { status: 401 });
     }
+
+    const prisma = getScopedPrismaClient(session.user.tenantId);
+    const body = await request.json();
+    const validatedData = userUpdateSchema.parse(body);
+    
+    const userToUpdate = await prisma.user.findUnique({ where: { id: params.id } });
+    if (!userToUpdate) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: params.id },
+      data: {
+        name: validatedData.name,
+        email: validatedData.email,
+        role: validatedData.role,
+        permissions: validatedData.role === 'ADMIN' ? [] : validatedData.permissions, // Admins don't need permissions array
+      },
+    });
+
+    return NextResponse.json(updatedUser);
+  } catch (error) {
+    console.error("Update User Error:", error);
+    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+  }
 }
 
-export async function DELETE(
-    request: Request,
-    { params }: { params: { id: string } }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-
-        if (!session?.user || session.user.role !== 'ADMIN') {
-            return new NextResponse('Unauthorized', { status: 401 });
-        }
-
-        // Prevent deleting the last admin
-        const adminCount = await prisma.user.count({
-            where: { role: 'ADMIN' }
-        });
-
-        const userToDelete = await prisma.user.findUnique({
-            where: { id: params.id },
-            select: { role: true }
-        });
-
-        if (adminCount <= 1 && userToDelete?.role === 'ADMIN') {
-            return NextResponse.json(
-                { error: 'Cannot delete the last admin user' },
-                { status: 400 }
-            );
-        }
-
-        await prisma.user.delete({
-            where: { id: params.id },
-        });
-
-        return new NextResponse(null, { status: 204 });
-    } catch (error) {
-        console.error('Error deleting user:', error);
-        return NextResponse.json(
-            { error: 'Failed to delete user' },
-            { status: 500 }
-        );
+// --- FIX: SECURED SOFT DELETE HANDLER ---
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.tenantId || session.user.role !== 'ADMIN') {
+      return new NextResponse('Unauthorized', { status: 401 });
     }
-} 
+
+    if (session.user.id === params.id) {
+        return NextResponse.json({ error: 'You cannot delete yourself.' }, { status: 400 });
+    }
+
+    const prisma = getScopedPrismaClient(session.user.tenantId);
+    
+    // Instead of deleting the user, mark them as inactive.
+    // This preserves relations and allows the email to be reused in the future if needed.
+    await prisma.user.update({
+      where: { id: params.id },
+      data: { isActive: false },
+    });
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error("Delete User Error:", error);
+    return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
+  }
+}

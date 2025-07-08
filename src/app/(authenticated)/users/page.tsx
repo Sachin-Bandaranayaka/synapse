@@ -1,3 +1,5 @@
+// src/app/(authenticated)/users/page.tsx
+
 import { Role } from '@prisma/client';
 import { Metadata } from 'next';
 import { getSession } from "@/lib/auth";
@@ -55,5 +57,5 @@ export default async function UsersPage() {
     }));
     
     // 4. Render the client component with the secure data
-    return <UsersClient initialUsers={users} />;
+    return <UsersClient initialUsers={users} currentUserId={session.user.id} />;
 }

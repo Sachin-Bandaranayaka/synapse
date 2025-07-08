@@ -1,11 +1,9 @@
-// src/app/(authenticated)/products/page.tsx
-
 import { getSession } from "@/lib/auth";
 import { getScopedPrismaClient } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { ProductsClient } from "./products-client";
 import { transformProduct } from "@/lib/products";
-import { User } from "next-auth"; // Import the User type
+import { User } from "next-auth";
 
 export default async function ProductsPage() {
   const session = await getSession();
@@ -14,7 +12,6 @@ export default async function ProductsPage() {
     return redirect('/auth/signin');
   }
 
-  // Redirect if a user without VIEW_PRODUCTS permission lands here
   if (session.user.role === 'TEAM_MEMBER' && !session.user.permissions?.includes('VIEW_PRODUCTS')) {
     return redirect('/unauthorized');
   }
@@ -22,6 +19,10 @@ export default async function ProductsPage() {
   const prisma = getScopedPrismaClient(session.user.tenantId);
 
   const products = await prisma.product.findMany({
+    // --- FIX: Add a 'where' clause to only fetch active products ---
+    where: {
+      isActive: true,
+    },
     orderBy: {
       name: 'asc'
     },
@@ -33,7 +34,5 @@ export default async function ProductsPage() {
 
   const transformedProducts = products.map(transformProduct);
 
-  // --- THE FIX ---
-  // Pass the user object to the client component
   return <ProductsClient initialProducts={transformedProducts} user={session.user as User} />;
 }

@@ -106,8 +106,9 @@ let locationsAPIInstance: TransExpressLocations | null = null;
 // Initialize the locations API
 function getLocationsAPI() {
     if (!locationsAPIInstance) {
-        const apiKey = process.env.NEXT_PUBLIC_TRANS_EXPRESS_API_KEY || '';
-        const transExpress = new TransExpressProvider(apiKey);
+        const username = process.env.NEXT_PUBLIC_TRANS_EXPRESS_USERNAME || '';
+        const password = process.env.NEXT_PUBLIC_TRANS_EXPRESS_PASSWORD || '';
+        const transExpress = new TransExpressProvider(username, password);
         locationsAPIInstance = new TransExpressLocations(transExpress);
     }
     return locationsAPIInstance;

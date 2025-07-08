@@ -43,7 +43,32 @@ export async function POST(request: Request) {
     const json = await request.json();
     const data = GetRatesSchema.parse(json);
 
-    const providers = ShippingProviderFactory.getAllProviders();
+    const tenantId = session.user.tenantId;
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: {
+        fardaExpressClientId: true,
+        fardaExpressApiKey: true,
+        transExpressUsername: true,
+        transExpressPassword: true,
+        royalExpressApiKey: true,
+      },
+    });
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
+    }
+
+    const shippingProviderFactory = new ShippingProviderFactory({
+      fardaExpressClientId: tenant.fardaExpressClientId || undefined,
+      fardaExpressApiKey: tenant.fardaExpressApiKey || undefined,
+      transExpressUsername: tenant.transExpressUsername || undefined,
+      transExpressPassword: tenant.transExpressPassword || undefined,
+      royalExpressApiKey: tenant.royalExpressApiKey || undefined,
+    });
+
+    const providers = shippingProviderFactory.getAllProviders();
     const ratePromises = providers.map((provider) =>
       provider.getRates(data.origin, data.destination, data.packageDetails)
     );

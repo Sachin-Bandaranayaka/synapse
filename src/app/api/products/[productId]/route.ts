@@ -122,7 +122,7 @@ export async function PUT(
   }
 }
 
-// SECURED DELETE HANDLER
+// --- FIX: SECURED SOFT DELETE HANDLER ---
 export async function DELETE(
   request: Request,
   { params }: { params: { productId: string } }
@@ -138,23 +138,12 @@ export async function DELETE(
     }
 
     const prisma = getScopedPrismaClient(session.user.tenantId);
-    const product = await prisma.product.findUnique({
+
+    // Instead of deleting, we update the `isActive` flag to false.
+    await prisma.product.update({
       where: { id: params.productId },
-      include: { _count: { select: { orders: true, leads: true } } },
+      data: { isActive: false },
     });
-
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-    }
-
-    if (product._count.orders > 0 || product._count.leads > 0) {
-      return NextResponse.json({ error: 'Cannot delete product with existing orders or leads' }, { status: 400 });
-    }
-
-    await prisma.$transaction([
-      prisma.stockAdjustment.deleteMany({ where: { productId: params.productId } }),
-      prisma.product.delete({ where: { id: params.productId } }),
-    ]);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

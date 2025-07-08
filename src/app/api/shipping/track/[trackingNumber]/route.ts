@@ -54,7 +54,32 @@ export async function GET(
     const providerName = order.shippingProvider.toLowerCase().replace('_', ' ');
 
     // Get the shipping provider
-    const provider = ShippingProviderFactory.getProvider(providerName);
+    const tenantId = session.user.tenantId;
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: {
+        fardaExpressClientId: true,
+        fardaExpressApiKey: true,
+        transExpressUsername: true,
+        transExpressPassword: true,
+        royalExpressApiKey: true,
+      },
+    });
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
+    }
+
+    const shippingProviderFactory = new ShippingProviderFactory({
+      fardaExpressClientId: tenant.fardaExpressClientId || undefined,
+      fardaExpressApiKey: tenant.fardaExpressApiKey || undefined,
+      transExpressUsername: tenant.transExpressUsername || undefined,
+      transExpressPassword: tenant.transExpressPassword || undefined,
+      royalExpressApiKey: tenant.royalExpressApiKey || undefined,
+    });
+
+    const provider = shippingProviderFactory.getProvider(providerName);
 
     // Track the shipment
     const status = await provider.trackShipment(params.trackingNumber);

@@ -1,6 +1,6 @@
 // src/app/api/leads/route.ts
 
-import { getScopedPrismaClient } from '@/lib/prisma'; // Import our new scoped client
+import { getScopedPrismaClient } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -20,9 +20,11 @@ const leadSchema = z.object({
     notes: z.string().optional(),
   }),
   productCode: z.string().min(1, 'Product code is required'),
+  // Add a flag to bypass the low stock warning if the user confirms
+  forceCreate: z.boolean().optional().default(false),
 });
 
-// SECURED GET HANDLER
+// SECURED GET HANDLER (No changes)
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -31,7 +33,6 @@ export async function GET(request: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Use the scoped client for the current tenant
     const prisma = getScopedPrismaClient(session.user.tenantId);
 
     const { searchParams } = new URL(request.url);
@@ -40,8 +41,6 @@ export async function GET(request: Request) {
     const endDate = searchParams.get('endDate');
 
     const where: Prisma.LeadWhereInput = {
-      // If user is not an ADMIN, only show leads assigned to them.
-      // Tenant filtering is handled automatically by the scoped client.
       ...(session.user.role !== 'ADMIN' && { userId: session.user.id }),
       ...(status && { status: status as LeadStatus }),
       ...(startDate && endDate && {
@@ -52,7 +51,6 @@ export async function GET(request: Request) {
       }),
     };
 
-    // This query is now automatically secured by the scoped client
     const leads = await prisma.lead.findMany({
       where,
       include: {
@@ -69,7 +67,7 @@ export async function GET(request: Request) {
   }
 }
 
-// SECURED POST HANDLER
+// SECURED POST HANDLER (Updated with stock check logic)
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -78,13 +76,10 @@ export async function POST(request: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    // Use the scoped client for the current tenant
     const prisma = getScopedPrismaClient(session.user.tenantId);
-
     const data = await request.json();
     const validatedData = leadSchema.parse(data);
 
-    // **THE FIX**: This now securely finds the product within the tenant's scope.
     const product = await prisma.product.findFirst({
       where: { code: validatedData.productCode },
     });
@@ -93,7 +88,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Product not found for this tenant' }, { status: 404 });
     }
 
-    // This now securely creates the lead and assigns it to the correct tenant automatically.
+    // --- NEW: STOCK CHECK LOGIC ---
+    
+    // 1. Check if the product is out of stock.
+    if (product.stock <= 0) {
+        return NextResponse.json({ error: `Product "${product.name}" is out of stock.` }, { status: 400 });
+    }
+
+    // 2. Check if the product is below the low stock alert threshold.
+    // The `forceCreate` flag allows bypassing this check if the user confirms.
+    if (product.stock <= product.lowStockAlert && !validatedData.forceCreate) {
+        // Return a special response indicating a low stock warning.
+        // The frontend will use this to show a confirmation dialog.
+        return NextResponse.json({
+            requiresConfirmation: true,
+            message: `Low stock warning for "${product.name}". Only ${product.stock} items left. Do you want to proceed?`,
+        });
+    }
+    
+    // --- END OF NEW LOGIC ---
+
+    // If stock is sufficient or user has forced creation, create the lead.
     const lead = await prisma.lead.create({
       data: {
         csvData: validatedData.csvData as unknown as Prisma.JsonObject,
@@ -123,7 +138,14 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(lead);
+    // If the lead was created after a low stock warning, add a notification to the response.
+    let notification: string | null = null;
+    if (product.stock <= product.lowStockAlert) {
+        notification = `Lead created, but product "${product.name}" is low on stock (${product.stock} left).`;
+    }
+
+    return NextResponse.json({ ...lead, notification });
+
   } catch (error) {
     console.error('Error creating lead:', error);
     if (error instanceof z.ZodError) {

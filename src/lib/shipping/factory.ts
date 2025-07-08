@@ -3,55 +3,55 @@ import { FardaExpressService } from './farda-express';
 import { TransExpressProvider } from './trans-express';
 import { RoyalExpressProvider } from './royal-express';
 
+interface TenantApiKeys {
+  fardaExpressClientId?: string;
+  fardaExpressApiKey?: string;
+  transExpressUsername?: string;
+  transExpressPassword?: string;
+  royalExpressApiKey?: string;
+}
+
 export class ShippingProviderFactory {
-  private static providers: Map<string, ShippingProvider> = new Map();
+  private providers: Map<string, ShippingProvider> = new Map();
 
-  static initialize() {
-    if (this.providers.size > 0) {
-      return;
-    }
-
+  constructor(tenantApiKeys: TenantApiKeys) {
     // Initialize Farda Express
-    const fardaApiKey = process.env.FARDA_EXPRESS_API_KEY;
-    if (fardaApiKey) {
+    if (tenantApiKeys.fardaExpressApiKey && tenantApiKeys.fardaExpressClientId) {
       this.providers.set(
         'farda_express',
-        new FardaExpressService()
+        new FardaExpressService(tenantApiKeys.fardaExpressClientId, tenantApiKeys.fardaExpressApiKey)
       );
     }
 
     // Initialize Trans Express
-    const transApiKey = process.env.TRANS_EXPRESS_API_KEY;
-    if (transApiKey) {
+    if (tenantApiKeys.transExpressUsername && tenantApiKeys.transExpressPassword) {
       this.providers.set(
         'trans_express',
-        new TransExpressProvider(transApiKey)
+        new TransExpressProvider(tenantApiKeys.transExpressUsername, tenantApiKeys.transExpressPassword)
       );
     }
 
     // Initialize Royal Express
-    const royalApiKey = process.env.ROYAL_EXPRESS_API_KEY;
-    if (royalApiKey) {
-      this.providers.set(
-        'royal_express',
-        new RoyalExpressProvider(royalApiKey)
-      );
+    if (tenantApiKeys.royalExpressApiKey) {
+      const [royalEmail, royalPassword] = tenantApiKeys.royalExpressApiKey.split(':');
+      if (royalEmail && royalPassword) {
+        this.providers.set(
+          'royal_express',
+          new RoyalExpressProvider(royalEmail, royalPassword)
+        );
+      }
     }
   }
 
-  static getProvider(name: string): ShippingProvider {
-    this.initialize();
-
+  getProvider(name: string): ShippingProvider {
     const provider = this.providers.get(name);
     if (!provider) {
       throw new Error(`Shipping provider '${name}' not found`);
     }
-
     return provider;
   }
 
-  static getAllProviders(): ShippingProvider[] {
-    this.initialize();
+  getAllProviders(): ShippingProvider[] {
     return Array.from(this.providers.values());
   }
 }

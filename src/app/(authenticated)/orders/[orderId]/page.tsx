@@ -101,6 +101,11 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                                                 quantity: order.quantity,
                                                 discount: order.discount || undefined,
                                             }}
+                                            fardaExpressClientId={tenant.fardaExpressClientId || undefined}
+                                            fardaExpressApiKey={tenant.fardaExpressApiKey || undefined}
+                                            transExpressUsername={tenant.transExpressUsername || undefined}
+                                            transExpressPassword={tenant.transExpressPassword || undefined}
+                                            royalExpressApiKey={tenant.royalExpressApiKey || undefined}
                                         />
                                     </div>
                                 </div>

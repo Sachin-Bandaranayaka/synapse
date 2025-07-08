@@ -1,12 +1,15 @@
 import Papa from 'papaparse';
 import { z } from 'zod';
 
+// --- FIX: Add product_name to the schema ---
+// This ensures the product name is read from the CSV and passed to the backend.
 export const LeadSchema = z.object({
   customer_name: z.string().min(1, "Customer name is required"),
   phone: z.string().min(1, "Phone number is required"),
   second_phone: z.string().optional(),
   address: z.string().min(1, "Address is required"),
   product_code: z.string().min(1, "Product code is required"),
+  product_name: z.string().optional(), // Added this line
   email: z.string().email().optional(),
   notes: z.string().optional(),
 });

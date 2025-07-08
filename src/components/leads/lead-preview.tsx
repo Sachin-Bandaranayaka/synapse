@@ -19,7 +19,14 @@ export function LeadPreview({ parseResult, onConfirm }: LeadPreviewProps) {
     try {
       await onConfirm(parseResult.validLeads);
     } catch (err) {
-      setError('Failed to import leads');
+      // --- FIX: Display the specific error message from the API ---
+      // Instead of a generic message, we now show the user exactly why the import failed.
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred during import.');
+      }
+      // We keep the console.error for debugging purposes.
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -28,10 +35,11 @@ export function LeadPreview({ parseResult, onConfirm }: LeadPreviewProps) {
 
   return (
     <div className="space-y-6">
+      {/* This section for CSV parsing errors remains the same */}
       {parseResult.errors.length > 0 && (
-        <div className="bg-yellow-50 p-4 rounded-md">
+        <div className="bg-yellow-100 p-4 rounded-md">
           <h3 className="text-yellow-800 font-medium">
-            Found {parseResult.errors.length} invalid rows
+            Found {parseResult.errors.length} invalid rows that will be skipped
           </h3>
           <div className="mt-2 max-h-40 overflow-y-auto">
             {parseResult.errors.map((error, index) => (
@@ -44,6 +52,7 @@ export function LeadPreview({ parseResult, onConfirm }: LeadPreviewProps) {
         </div>
       )}
 
+      {/* The preview list of valid leads remains the same */}
       <div className="bg-gray-800 ring-1 ring-white/10 overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-700">
           {parseResult.validLeads.map((lead, index) => (
@@ -73,14 +82,15 @@ export function LeadPreview({ parseResult, onConfirm }: LeadPreviewProps) {
         </ul>
       </div>
 
-      <div className="flex justify-end space-x-4">
+      <div className="flex justify-end items-center space-x-4">
+        {/* --- FIX: This will now display the detailed error message --- */}
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <button
           onClick={handleConfirm}
           disabled={isSubmitting || parseResult.validLeads.length === 0}
           className="inline-flex justify-center py-2 px-4 border border-transparent ring-1 ring-white/10 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
         >
-          {isSubmitting ? 'Importing...' : 'Import Leads'}
+          {isSubmitting ? 'Importing...' : `Import ${parseResult.validLeads.length} Leads`}
         </button>
       </div>
     </div>

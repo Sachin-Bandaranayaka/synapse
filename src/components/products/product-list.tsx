@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
-import { User } from 'next-auth'; // --- FIX: Import the User type
+import { User } from 'next-auth';
+import { toast } from 'sonner'; // Import toast for notifications
 
 interface Product {
   id: string;
@@ -20,7 +21,6 @@ interface Product {
   lastStockUpdate: string;
 }
 
-// --- FIX: Update props to accept the user object ---
 interface ProductListProps {
   products: Product[];
   user: User;
@@ -29,10 +29,8 @@ interface ProductListProps {
 export function ProductList({ products, user }: ProductListProps) {
   const [sortField, setSortField] = useState<keyof Product>('code');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // --- FIX: Add permission checks based on the user prop ---
   const canEdit = user.role === 'ADMIN' || user.permissions?.includes('EDIT_PRODUCTS');
   const canDelete = user.role === 'ADMIN' || user.permissions?.includes('DELETE_PRODUCTS');
 
@@ -65,48 +63,39 @@ export function ProductList({ products, user }: ProductListProps) {
     return 'bg-green-900/50 text-green-300 ring-green-500/50';
   };
 
+  // --- FIX: Updated delete function with clear user feedback ---
   const deleteProduct = async (productId: string) => {
     try {
       const response = await fetch(`/api/products/${productId}`, {
         method: 'DELETE',
       });
 
+      // If the API returns an error, parse it and throw it to be caught below
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to delete product');
+        throw new Error(data.error || 'Failed to deactivate product');
       }
 
+      // On success, show a success message and refresh the page data
+      toast.success('Product has been deactivated.');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete product');
-      console.error('Error deleting product:', err);
+      // Display the specific error from the API in a toast notification
+      toast.error(err instanceof Error ? err.message : 'An unknown error occurred.');
+      console.error('Error deactivating product:', err);
     }
   };
 
   return (
     <div className="overflow-x-auto">
-      {error && (
-        <div className="mb-4 rounded-md bg-red-900/50 p-4">
-          <div className="text-sm text-red-300">{error}</div>
-        </div>
-      )}
       <table className="min-w-full divide-y divide-gray-700">
         <thead>
           <tr>
-            <th onClick={() => handleSort('code')} className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">
-              Code {sortField === 'code' && (<span>{sortDirection === 'asc' ? '↑' : '↓'}</span>)}
-            </th>
-            <th onClick={() => handleSort('name')} className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">
-              Name {sortField === 'name' && (<span>{sortDirection === 'asc' ? '↑' : '↓'}</span>)}
-            </th>
-            <th onClick={() => handleSort('price')} className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">
-              Price {sortField === 'price' && (<span>{sortDirection === 'asc' ? '↑' : '↓'}</span>)}
-            </th>
-            <th onClick={() => handleSort('stock')} className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">
-              Stock {sortField === 'stock' && (<span>{sortDirection === 'asc' ? '↑' : '↓'}</span>)}
-            </th>
+            <th onClick={() => handleSort('code')} className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">Code</th>
+            <th onClick={() => handleSort('name')} className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">Name</th>
+            <th onClick={() => handleSort('price')} className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">Price</th>
+            <th onClick={() => handleSort('stock')} className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">Stock</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Activity</th>
-            {/* --- FIX: Only show the Actions header if user has permission --- */}
             {(canEdit || canDelete) && (
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
             )}
@@ -114,19 +103,10 @@ export function ProductList({ products, user }: ProductListProps) {
         </thead>
         <tbody className="divide-y divide-gray-700">
           {sortedProducts.map((product) => (
-            <motion.tr
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="hover:bg-gray-700/50"
-            >
+            <motion.tr key={product.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hover:bg-gray-700/50">
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">{product.code}</td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex flex-col">
-                  <div className="text-sm font-medium text-white">{product.name}</div>
-                  {product.description && (<div className="text-sm text-gray-400">{product.description}</div>)}
-                </div>
+                <div className="text-sm font-medium text-white">{product.name}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-100">
                 {new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(product.price)}
@@ -138,22 +118,16 @@ export function ProductList({ products, user }: ProductListProps) {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-400">
                 {product.totalOrders} orders, {product.totalLeads} leads
-                <div className="text-xs">
-                  Last updated: {format(new Date(product.lastStockUpdate), 'MMM d, yyyy')}
-                </div>
               </td>
-              {/* --- FIX: Conditionally render the entire actions cell --- */}
               {(canEdit || canDelete) && (
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right space-x-3">
                   {canEdit && (
-                    <Link href={`/products/${product.id}/edit`} className="text-indigo-400 hover:text-indigo-300">
-                      Edit
-                    </Link>
+                    <Link href={`/products/${product.id}/edit`} className="text-indigo-400 hover:text-indigo-300">Edit</Link>
                   )}
                   {canDelete && (
                     <button
                       onClick={() => {
-                        if (confirm('Are you sure you want to delete this product? This will also delete all associated leads and orders.')) {
+                        if (confirm('Are you sure you want to deactivate this product? It will be hidden from all lists but its data will be preserved.')) {
                           deleteProduct(product.id);
                         }
                       }}

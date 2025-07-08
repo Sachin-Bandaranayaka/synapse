@@ -82,14 +82,15 @@ model Tenant {
 }
 
 model User {
-  id               String            @id @default(uuid())
-  email            String            @unique
-  name             String?
-  password         String
-  role             Role              @default(TEAM_MEMBER)
-  permissions      String[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+ id            String      @id @default(uuid())
+  email         String      @unique
+  name          String?
+  password      String
+  role          Role        @default(TEAM_MEMBER)
+  permissions   String[]
+  isActive      Boolean     @default(true) // --- FIX: Add this line
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   orders           Order[]
   leads            Lead[]
   stockAdjustments StockAdjustment[]
@@ -102,15 +103,16 @@ model User {
 }
 
 model Product {
-  id               String            @id @default(uuid())
-  code             String
-  name             String
-  description      String?
-  price            Float
-  stock            Int               @default(0)
-  lowStockAlert    Int               @default(10)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+ id              String    @id @default(uuid())
+  code            String
+  name            String
+  description     String?
+  price           Float
+  stock           Int       @default(0)
+  lowStockAlert   Int       @default(10)
+  isActive        Boolean   @default(true) // --- FIX: Add this line
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   orders           Order[]
   leads            Lead[]

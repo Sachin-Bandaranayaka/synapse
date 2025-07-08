@@ -1,29 +1,63 @@
-// src/app/api/leads/[leadId]/route.ts
-
-import { getScopedPrismaClient } from '@/lib/prisma'; // Import our scoped client
+import { getScopedPrismaClient } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
-import { Prisma } from '@prisma/client';
-
-export const dynamic = 'force-dynamic';
 
 const leadUpdateSchema = z.object({
-  csvData: z.object({
-    name: z.string().min(1, 'Name is required'),
-    phone: z.string().min(1, 'Phone number is required'),
-    secondPhone: z.string().optional(),
-    email: z.string().email('Invalid email').optional().nullable(),
-    address: z.string().min(1, 'Address is required'),
-    city: z.string().optional().default(""),
-    source: z.string().optional().default(""),
-    notes: z.string().optional(),
-    quantity: z.number().int().positive().default(1),
-    discount: z.number().min(0).default(0),
-  }),
-  productCode: z.string().min(1, 'Product code is required'),
+  productCode: z.string(),
+  csvData: z.any(),
 });
+import { Prisma } from '@prisma/client';
+
+// ... (GET and PUT handlers remain the same) ...
+
+// --- FIX: Add a DELETE handler for leads ---
+export async function DELETE(
+  request: Request,
+  { params }: { params: { leadId: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.tenantId) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+    
+    // Check for specific delete permission
+    const canDelete = session.user.role === 'ADMIN' || session.user.permissions?.includes('DELETE_LEADS');
+    if (!canDelete) {
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+
+    const prisma = getScopedPrismaClient(session.user.tenantId);
+
+    // Check if the lead has been converted to an order
+    const lead = await prisma.lead.findUnique({
+      where: { id: params.leadId },
+      include: { order: true },
+    });
+
+    if (!lead) {
+      return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+    }
+
+    if (lead.order) {
+      return NextResponse.json({ error: 'Cannot delete a lead that has been converted to an order.' }, { status: 400 });
+    }
+
+    await prisma.lead.delete({
+      where: { id: params.leadId },
+    });
+
+    // Return a successful response with no content
+    return new NextResponse(null, { status: 204 });
+
+  } catch (error) {
+    console.error('Error deleting lead:', error);
+    return NextResponse.json({ error: 'Failed to delete lead' }, { status: 500 });
+  }
+}
 
 // SECURED GET HANDLER
 export async function GET(

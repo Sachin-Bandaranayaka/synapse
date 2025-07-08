@@ -34,23 +34,14 @@ export class FardaExpressService implements ShippingProvider {
   private readonly EXISTING_WAYBILL_ENDPOINT = 'https://www.fdedomestic.com/api/parcel/existing_waybill_api_v1.php';
   private readonly TRACKING_ENDPOINT = 'https://www.fdedomestic.com/api/parcel/tracking_api_v1.php';
 
-  constructor() {
-    // For client-side usage, we need to use the NEXT_PUBLIC_ prefixed environment variables
-    const clientId = typeof window !== 'undefined'
-      ? process.env.NEXT_PUBLIC_FARDA_EXPRESS_CLIENT_ID
-      : process.env.FARDA_EXPRESS_CLIENT_ID;
-
-    const apiKey = typeof window !== 'undefined'
-      ? process.env.NEXT_PUBLIC_FARDA_EXPRESS_API_KEY
-      : process.env.FARDA_EXPRESS_API_KEY;
-
+  constructor(clientId: string, apiKey: string) {
     if (!clientId || !apiKey) {
-      console.error('Farda Express credentials not found in environment variables');
+      console.error('Farda Express credentials not provided');
     }
 
     this.config = {
-      clientId: clientId || '',
-      apiKey: apiKey || '',
+      clientId: clientId,
+      apiKey: apiKey,
     };
 
     console.log('Farda Express service initialized with:', {

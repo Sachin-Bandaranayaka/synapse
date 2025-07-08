@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // File: src/app/api/reports/sales/export/route.ts
 
 import { NextResponse } from 'next/server';
