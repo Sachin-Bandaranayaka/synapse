@@ -12,12 +12,21 @@ export async function createOrderFromLead(data: CreateOrderData) {
   let orderResult: (Prisma.OrderGetPayload<{}>) | null = null;
 
   try {
-    const lead = await prisma.lead.findUnique({
-      where: { id: data.leadId },
-      include: { product: true },
-    });
+    // --- FIX: Fetch the lead and the tenant's settings at the same time ---
+    const [lead, tenant] = await Promise.all([
+      prisma.lead.findUnique({
+        where: { id: data.leadId },
+        include: { product: true },
+      }),
+      // Use the global prisma client to fetch the tenant's specific settings
+      unscopedPrisma.tenant.findUnique({
+        where: { id: data.tenantId },
+        select: { defaultShippingProvider: true },
+      })
+    ]);
 
     if (!lead) throw new Error('Lead not found');
+    if (!tenant) throw new Error('Tenant settings not found.'); // Should not happen in a valid system
     if (lead.status === LeadStatus.CONFIRMED) throw new Error('Lead already converted to order');
     
     const csvData = lead.csvData as any;
@@ -56,7 +65,8 @@ export async function createOrderFromLead(data: CreateOrderData) {
           customerAddress: csvData.address,
           customerEmail: csvData.email,
           notes: csvData.notes,
-          shippingProvider: ShippingProvider.FARDA_EXPRESS,
+          // --- FIX: Use the tenant's saved default, or fallback to a system default ---
+          shippingProvider: tenant.defaultShippingProvider || ShippingProvider.FARDA_EXPRESS,
         },
       });
 
@@ -90,7 +100,6 @@ export async function createOrderFromLead(data: CreateOrderData) {
     throw error;
   }
 
-  // --- FINAL FIX: Comment out the email sending logic ---
   if (orderResult && sendOrderConfirmationEmail) {
     try {
       // The email feature is disconnected, so we will not call the function.

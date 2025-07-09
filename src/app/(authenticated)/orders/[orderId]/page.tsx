@@ -80,10 +80,7 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
 
                         {/* Other components like Order Journey, Shipping Form, etc. */}
                         <div className="lg:col-span-1 flex flex-col gap-6">
-                            <div className="rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
-                                <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Order Journey</h3></div>
-                                <div className="border-t border-gray-700 px-6 py-5"><OrderJourney order={order} /></div>
-                            </div>
+
                             {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && canUpdateShipping && (
                                 <div className="print:hidden rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
                                     <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Shipping Information</h3></div>
@@ -110,7 +107,10 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                                     </div>
                                 </div>
                             )}
-
+                            <div className="rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
+                                <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Order Journey</h3></div>
+                                <div className="border-t border-gray-700 px-6 py-5"><OrderJourney order={order} /></div>
+                            </div>
                             {order.status === 'CONFIRMED' && canDeleteOrders && (
                                 <div className="print:hidden rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
                                     <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Cancel Order</h3></div>

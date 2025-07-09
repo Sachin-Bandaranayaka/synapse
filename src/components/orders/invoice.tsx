@@ -26,13 +26,12 @@ interface Order {
     invoicePrinted?: boolean;
 }
 
-// --- FIX: Update props to accept dynamic tenant information ---
 interface InvoiceProps {
     order: Order;
     businessName: string | null;
     businessAddress: string | null;
     businessPhone: string | null;
-    invoiceNumber: string; // The full, formatted invoice number (e.g., "INV-1001")
+    invoiceNumber: string;
     isMultiPrint?: boolean;
     showPrintControls?: boolean;
 }
@@ -42,7 +41,7 @@ export function Invoice({
     businessName,
     businessAddress,
     businessPhone,
-    invoiceNumber, // Use the new prop
+    invoiceNumber,
     isMultiPrint = false,
     showPrintControls = false,
 }: InvoiceProps) {
@@ -52,17 +51,15 @@ export function Invoice({
     const total = Math.max(0, subtotal - discount);
 
     const commonInvoice = (
-        <div className="w-full px-2 bg-white text-black">
+        <div className="w-full px-2 bg-white text-black p-4 rounded rounded-2">
             <div className="flex justify-between mb-2">
                 <div className="text-left">
-                    {/* --- FIX: Use dynamic props for business info --- */}
                     <h1 className={`${isMultiPrint ? 'text-[9pt]' : 'text-[12pt]'} font-bold leading-tight`}>{businessName || 'Your Company Name'}</h1>
                     <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} text-gray-600 leading-tight`}>
                         <p>{businessAddress || 'Your Company Address'}</p>
                         <p>Tel: {businessPhone || 'Your Phone'}</p>
                     </div>
                     <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} leading-tight mt-1`}>
-                        {/* --- FIX: Use the new dynamic invoiceNumber prop --- */}
                         <p>Invoice #: {invoiceNumber}</p>
                     </div>
                 </div>
@@ -114,6 +111,7 @@ export function Invoice({
                 </tfoot>
             </table>
 
+            {/* --- NEW: Barcode Section --- */}
             {order.shippingProvider && order.trackingNumber && (
                 <div className="text-left mt-2">
                     <p className={`${isMultiPrint ? 'text-[7pt]' : 'text-[8pt]'}`}>

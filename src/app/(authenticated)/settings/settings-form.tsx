@@ -1,8 +1,11 @@
+// src/app/(authenticated)/settings/settings-form.tsx
+
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
 import { updateTenantSettings } from './actions';
-import { Tenant } from '@prisma/client';
+// --- FIX: Import ShippingProvider enum from Prisma client ---
+import { Tenant, ShippingProvider } from '@prisma/client';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -30,13 +33,11 @@ export function SettingsForm({ tenant }: { tenant: Tenant }) {
             <input type="text" name="businessName" id="businessName" defaultValue={tenant.businessName || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm"/>
           </div>
 
-          {/* --- NEW: Business Address Field --- */}
           <div className="sm:col-span-6">
               <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-300">Business Address</label>
               <textarea name="businessAddress" id="businessAddress" rows={3} defaultValue={tenant.businessAddress || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm"></textarea>
           </div>
 
-          {/* --- NEW: Business Phone and Invoice Prefix Fields --- */}
           <div className="sm:col-span-3">
               <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-300">Business Phone</label>
               <input type="text" name="businessPhone" id="businessPhone" defaultValue={tenant.businessPhone || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm"/>
@@ -47,9 +48,35 @@ export function SettingsForm({ tenant }: { tenant: Tenant }) {
           </div>
         </div>
       </div>
+
+      {/* --- NEW: Shipping Settings Section --- */}
+      <div className="pt-8">
+        <div>
+            <h3 className="text-lg font-medium leading-6 text-white">Shipping Settings</h3>
+            <p className="mt-1 text-sm text-gray-400">Configure your default shipping options.</p>
+        </div>
+        <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+            <div className="sm:col-span-3">
+                <label htmlFor="defaultShippingProvider" className="block text-sm font-medium text-gray-300">Default Shipping Provider</label>
+                <select
+                    id="defaultShippingProvider"
+                    name="defaultShippingProvider"
+                    defaultValue={tenant.defaultShippingProvider || ''}
+                    className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                    {/* Map over the ShippingProvider enum to create options */}
+                    {Object.values(ShippingProvider).map((provider) => (
+                        <option key={provider} value={provider}>
+                            {provider.replace('_', ' ')}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        </div>
+      </div>
       
-       {/* API Keys Section */}
-       <div className="pt-8">
+      {/* API Keys Section */}
+      <div className="pt-8">
         <div>
           <h3 className="text-lg font-medium leading-6 text-white">Shipping API Keys</h3>
           <p className="mt-1 text-sm text-gray-400">Enter your own API keys for shipping providers.</p>

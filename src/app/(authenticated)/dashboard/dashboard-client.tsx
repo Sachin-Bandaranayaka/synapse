@@ -44,15 +44,6 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
 
     const currentData = initialData[activeFilter];
 
-    // --- NEW: Define button styles based on stock counts ---
-    const lowStockStyles = initialData.lowStockCount > 0
-        ? "bg-orange-500/10 text-orange-300 ring-orange-500/20 hover:bg-orange-500/20"
-        : "bg-green-500/10 text-green-300 ring-green-500/20 hover:bg-green-500/20";
-
-    const noStockStyles = initialData.noStockCount > 0
-        ? "bg-red-500/10 text-red-300 ring-red-500/20 hover:bg-red-500/20"
-        : "bg-green-500/10 text-green-300 ring-green-500/20 hover:bg-green-500/20";
-
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
             <div className="flex items-center justify-between">
@@ -64,19 +55,24 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
                     <h2 className="text-xl font-medium text-gray-200 w-1/3">Overview</h2>
                     
                     <div className="flex items-center justify-center space-x-4 w-1/3">
-                        {/* --- FIX: Apply conditional styles to buttons --- */}
-                        <Link href="/products" className={`flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-semibold ring-1 ring-inset transition-colors ${lowStockStyles}`}>
-                            <span>Low Stock</span>
-                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/20 text-xs">
-                                {initialData.lowStockCount}
-                            </span>
-                        </Link>
-                        <Link href="/inventory" className={`flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-semibold ring-1 ring-inset transition-colors ${noStockStyles}`}>
-                            <span>No Stock</span>
-                             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/20 text-xs">
-                                {initialData.noStockCount}
-                            </span>
-                        </Link>
+                        {/* --- FIX: Conditionally render the Low Stock button --- */}
+                        {initialData.lowStockCount > 0 && (
+                            <Link href="/products" className="flex items-center space-x-2 rounded-lg bg-orange-500/10 px-3 py-2 text-sm font-semibold text-orange-300 ring-1 ring-inset ring-orange-500/20 hover:bg-orange-500/20 transition-colors">
+                                <span>Low Stock</span>
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/20 text-xs">
+                                    {initialData.lowStockCount}
+                                </span>
+                            </Link>
+                        )}
+                        {/* --- FIX: Conditionally render the No Stock button --- */}
+                        {initialData.noStockCount > 0 && (
+                            <Link href="/inventory" className="flex items-center space-x-2 rounded-lg bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300 ring-1 ring-inset ring-red-500/20 hover:bg-red-500/20 transition-colors">
+                                <span>No Stock</span>
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/20 text-xs">
+                                    {initialData.noStockCount}
+                                </span>
+                            </Link>
+                        )}
                     </div>
 
                     <div className="flex items-center justify-end space-x-1 p-1 bg-gray-900 rounded-lg w-1/3">

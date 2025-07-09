@@ -40,18 +40,18 @@ enum ShippingProvider {
 }
 
 model Tenant {
-  id              String    @id @default(cuid())
-  name            String    @unique
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  name                String    @unique
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // --- Branding / Customization Fields ---
-  businessName    String?
-  logoUrl         String?
-  backgroundColor String?
-  cardColor       String?
-  fontColor       String?
+  businessName        String?
+  logoUrl             String?
+  backgroundColor     String?
+  cardColor           String?
+  fontColor           String?
 
   // --- API KEY FIELDS ---
   fardaExpressClientId String?
@@ -61,84 +61,85 @@ model Tenant {
   royalExpressApiKey   String?
 
   // --- NEW INVOICE FIELDS ---
-  businessAddress String?
-  businessPhone   String?
-  invoicePrefix   String? 
+  businessAddress     String?
+  businessPhone       String?
+  invoicePrefix       String?
+
+  // --- NEW: Default Shipping Provider Field ---
+  defaultShippingProvider ShippingProvider? @default(FARDA_EXPRESS)
 
   // --- NEW REFERRAL FIELDS ---
-  referredById    String?
-  // Defines the "parent" relationship (the tenant who did the referring)
-  referredBy      Tenant?   @relation("TenantReferrals", fields: [referredById], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  // Defines the "children" relationship (a list of tenants this tenant has referred)
-  referrals       Tenant[]  @relation("TenantReferrals")
+  referredById        String?
+  referredBy          Tenant?   @relation("TenantReferrals", fields: [referredById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  referrals           Tenant[]  @relation("TenantReferrals")
 
   // --- Existing Relations ---
-  users            User[]
-  products         Product[]
-  leads            Lead[]
-  orders           Order[]
-  stockAdjustments StockAdjustment[]
-  trackingUpdates  TrackingUpdate[]
+  users               User[]
+  products            Product[]
+  leads               Lead[]
+  orders              Order[]
+  stockAdjustments    StockAdjustment[]
+  trackingUpdates     TrackingUpdate[]
 }
 
 model User {
- id            String      @id @default(uuid())
-  email         String      @unique
-  name          String?
-  password      String
-  role          Role        @default(TEAM_MEMBER)
-  permissions   String[]
-  isActive      Boolean     @default(true) // --- FIX: Add this line
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  orders           Order[]
-  leads            Lead[]
+  id              String    @id @default(uuid())
+  email           String    @unique
+  name            String?
+  password        String
+  role            Role      @default(TEAM_MEMBER)
+  permissions     String[]
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  orders          Order[]
+  leads           Lead[]
   stockAdjustments StockAdjustment[]
 
-  tenantId         String
-  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
 
   @@index([email])
   @@index([tenantId])
 }
 
 model Product {
- id              String    @id @default(uuid())
+  id              String    @id @default(uuid())
   code            String
   name            String
   description     String?
   price           Float
   stock           Int       @default(0)
   lowStockAlert   Int       @default(10)
-  isActive        Boolean   @default(true) // --- FIX: Add this line
+  isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  orders           Order[]
-  leads            Lead[]
+  orders          Order[]
+  leads           Lead[]
   stockAdjustments StockAdjustment[]
-  
-  tenantId         String
-  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
 
   @@unique([code, tenantId])
   @@index([tenantId])
 }
 
 model Lead {
-  id          String     @id @default(uuid())
-  csvData     Json
-  productCode String
-  product     Product    @relation(fields: [productCode, tenantId], references: [code, tenantId])
-  status      LeadStatus @default(PENDING)
-  assignedTo  User?      @relation(fields: [userId], references: [id])
-  userId      String?
-  order       Order?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            String     @id @default(uuid())
+  csvData       Json
+  productCode   String
+  product       Product    @relation(fields: [productCode, tenantId], references: [code, tenantId])
+  status        LeadStatus @default(PENDING)
+  assignedTo    User?      @relation(fields: [userId], references: [id])
+  userId        String?
+  order         Order?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  tenantId    String
-  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  tenantId      String
+  tenant        Tenant     @relation(fields: [tenantId], references: [id])
 
   @@index([productCode])
   @@index([userId])
@@ -146,19 +147,19 @@ model Lead {
 }
 
 model Order {
-  id                  String            @id
-  number              Int               @default(autoincrement())
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  status              OrderStatus       @default(PENDING)
-  quantity            Int               @default(1)
-  total               Float             @default(0)
-  discount            Float             @default(0)
+  id                  String      @id
+  number              Int         @default(autoincrement())
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  status              OrderStatus @default(PENDING)
+  quantity            Int         @default(1)
+  total               Float       @default(0)
+  discount            Float       @default(0)
   customerName        String
   customerPhone       String
   customerSecondPhone String?
   customerAddress     String
-  customerCity        String            @default("")
+  customerCity        String      @default("")
   customerEmail       String?
   notes               String?
   shippingProvider    ShippingProvider?
@@ -166,16 +167,16 @@ model Order {
   shippedAt           DateTime?
   deliveredAt         DateTime?
   trackingUpdates     TrackingUpdate[]
-  product             Product           @relation(fields: [productId], references: [id])
+  product             Product     @relation(fields: [productId], references: [id])
   productId           String
-  lead                Lead              @relation(fields: [leadId], references: [id])
-  leadId              String            @unique
-  assignedTo          User              @relation(fields: [userId], references: [id])
+  lead                Lead        @relation(fields: [leadId], references: [id])
+  leadId              String      @unique
+  assignedTo          User        @relation(fields: [userId], references: [id])
   userId              String
-  invoicePrinted      Boolean           @default(false)
+  invoicePrinted      Boolean     @default(false)
 
   tenantId            String
-  tenant              Tenant            @relation(fields: [tenantId], references: [id])
+  tenant              Tenant      @relation(fields: [tenantId], references: [id])
 
   @@index([productId])
   @@index([leadId])
