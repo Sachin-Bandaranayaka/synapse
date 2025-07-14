@@ -12,13 +12,11 @@ export async function createOrderFromLead(data: CreateOrderData) {
   let orderResult: (Prisma.OrderGetPayload<{}>) | null = null;
 
   try {
-    // --- FIX: Fetch the lead and the tenant's settings at the same time ---
     const [lead, tenant] = await Promise.all([
       prisma.lead.findUnique({
         where: { id: data.leadId },
         include: { product: true },
       }),
-      // Use the global prisma client to fetch the tenant's specific settings
       unscopedPrisma.tenant.findUnique({
         where: { id: data.tenantId },
         select: { defaultShippingProvider: true },
@@ -26,7 +24,7 @@ export async function createOrderFromLead(data: CreateOrderData) {
     ]);
 
     if (!lead) throw new Error('Lead not found');
-    if (!tenant) throw new Error('Tenant settings not found.'); // Should not happen in a valid system
+    if (!tenant) throw new Error('Tenant settings not found.');
     if (lead.status === LeadStatus.CONFIRMED) throw new Error('Lead already converted to order');
     
     const csvData = lead.csvData as any;
@@ -35,22 +33,25 @@ export async function createOrderFromLead(data: CreateOrderData) {
     }
 
     orderResult = await unscopedPrisma.$transaction(async (tx) => {
+      // --- FIX: New, more robust Order ID generation for serverless environments ---
       const date = new Date();
       const year = date.getFullYear().toString().slice(-2);
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate().toString().padStart(2, '0');
-      const todayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       
-      const todayOrders = await tx.order.count({ where: { createdAt: { gte: todayStart } } });
+      // Use timestamp and a random string to ensure uniqueness, avoiding the need to count.
+      const time = date.getTime().toString().slice(-5); // Last 5 digits of timestamp
+      const random = Math.random().toString(36).substring(2, 5).toUpperCase(); // 3 random chars
       
-      const sequence = (todayOrders + 1).toString().padStart(4, '0');
-      const orderId = `JH${year}${month}${day}${sequence}`;
+      const orderId = `JH${year}${month}${day}${time}${random}`;
+      // --- End of FIX ---
+
       const discount = (lead.csvData as any).discount || 0;
       const total = (lead.product.price * data.quantity) - discount;
 
       const order = await tx.order.create({
         data: {
-          id: orderId,
+          id: orderId, // Use the new, unique ID
           tenant: { connect: { id: data.tenantId } },
           lead: { connect: { id: data.leadId } },
           product: { connect: { id: lead.product.id } },
@@ -65,7 +66,6 @@ export async function createOrderFromLead(data: CreateOrderData) {
           customerAddress: csvData.address,
           customerEmail: csvData.email,
           notes: csvData.notes,
-          // --- FIX: Use the tenant's saved default, or fallback to a system default ---
           shippingProvider: tenant.defaultShippingProvider || ShippingProvider.FARDA_EXPRESS,
         },
       });
@@ -102,7 +102,6 @@ export async function createOrderFromLead(data: CreateOrderData) {
 
   if (orderResult && sendOrderConfirmationEmail) {
     try {
-      // The email feature is disconnected, so we will not call the function.
       // sendOrderConfirmationEmail(orderResult.id); 
     } catch (emailError) {
       console.error('Non-critical error sending order confirmation email:', emailError);

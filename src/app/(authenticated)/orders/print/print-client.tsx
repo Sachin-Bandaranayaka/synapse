@@ -19,11 +19,23 @@ interface PrintClientProps {
   tenant: Tenant;
 }
 
+// --- NEW: Helper function to split the orders into pages for printing ---
+function chunk<T>(array: T[], size: number): T[][] {
+  if (!array) return [];
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
+
 export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
   const [orders, setOrders] = useState(initialOrders);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'pending' | 'printed'>('pending');
+  const [ordersToPrint, setOrdersToPrint] = useState<OrderWithProduct[]>([]);
 
   const { pendingOrders, printedOrders } = useMemo(() => {
     const sorted = [...orders].sort((a, b) => {
@@ -83,45 +95,60 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
     }
   };
 
-  // --- FIX: Use the browser's 'afterprint' event for more reliable state updates ---
   useEffect(() => {
     const handleAfterPrint = () => {
-      // This function runs after the print dialog is closed.
-      // We only mark as printed if we were on the pending tab and had items selected.
       if (activeTab === 'pending' && selectedOrderIds.length > 0) {
         updatePrintStatus(selectedOrderIds, true);
       }
+      setOrdersToPrint([]); 
     };
-
     window.addEventListener('afterprint', handleAfterPrint);
-
-    // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener('afterprint', handleAfterPrint);
     };
-  }, [activeTab, selectedOrderIds]); // Re-bind the listener if these dependencies change
+  }, [activeTab, selectedOrderIds]);
 
   const handlePrint = () => {
     if (selectedOrderIds.length === 0) {
       toast.warning('Please select at least one invoice to print.');
       return;
     }
-    // This just opens the print dialog. The 'afterprint' event handles the rest.
-    window.print();
+    setOrdersToPrint(orders.filter(o => selectedOrderIds.includes(o.id)));
+    setTimeout(() => {
+        window.print();
+    }, 100);
   };
 
   return (
     <>
       <style jsx global>{`
         @media print {
-          @page { size: A4 portrait; margin: 10mm; }
-          body { background-color: #fff !important; }
-          .print-container { display: flex; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; gap: 0; }
-          .invoice-page { width: 105mm; height: 59.4mm; padding: 5mm; border: 1px dashed #ccc; box-sizing: border-box; overflow: hidden; color: #000; page-break-inside: avoid; }
+          @page {
+            size: A4 portrait;
+            margin: 1cm;
+          }
+          body {
+            background-color: #fff !important;
+          }
+          /* This container for each page of invoices forces a page break after it */
+          .print-page-container {
+            page-break-after: always;
+          }
+          .print-page-container:last-child {
+            page-break-after: auto;
+          }
+          .invoice-item {
+            border: 1px solid #000;
+            padding: 4mm;
+            box-sizing: border-box;
+            overflow: hidden;
+            color: #000;
+          }
         }
       `}</style>
       
       <div className="print:hidden container mx-auto p-4 space-y-4 bg-gray-900 text-white min-h-screen">
+        {/* On-screen UI remains the same */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Print Invoices</h1>
           <div className="flex items-center space-x-4">
@@ -134,13 +161,11 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
             </Button>
           </div>
         </div>
-
         <Tabs value={activeTab} onValueChange={value => setActiveTab(value as any)} className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-gray-800 text-gray-300">
             <TabsTrigger value="pending" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Pending ({pendingOrders.length})</TabsTrigger>
             <TabsTrigger value="printed" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Printed ({printedOrders.length})</TabsTrigger>
           </TabsList>
-          
           <div className="mt-4 rounded-lg bg-gray-800 ring-1 ring-white/10">
             <div className="flex justify-between items-center gap-4 px-4 py-3 border-b border-gray-700">
               <div className="flex items-center gap-4">
@@ -153,24 +178,34 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
                 </Button>
               )}
             </div>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-4 max-h-[70vh] overflow-y-auto">
               {currentList.map(order => (
-                <div key={order.id} className={`rounded-lg bg-gray-900/50 ring-1 ring-white/10 relative cursor-pointer ${selectedOrderIds.includes(order.id) ? 'ring-indigo-500 ring-2' : ''}`} onClick={() => handleSelectOrder(order.id)}>
-                  <div className="absolute top-3 left-3 z-10">
-                    <input type="checkbox" className="h-5 w-5 rounded bg-gray-700 border-gray-600 text-indigo-600 focus:ring-indigo-500 pointer-events-none" checked={selectedOrderIds.includes(order.id)} readOnly />
-                  </div>
-                  <div className="flex justify-between items-start mb-2 pl-10">
-                    <h3 className="text-sm font-medium text-gray-300">Order ID: {order.id.substring(0, 8)}...</h3>
+                <div key={order.id} className={`rounded-lg bg-white p-1 shadow-md relative cursor-pointer transition-all ${selectedOrderIds.includes(order.id) ? 'ring-2 ring-indigo-500' : 'ring-1 ring-gray-300'}`} onClick={() => handleSelectOrder(order.id)}>
+                  <div className="absolute top-3 left-3 z-10"><input type="checkbox" className="h-5 w-5 rounded bg-gray-200 border-gray-400 text-indigo-600 focus:ring-indigo-500 pointer-events-none" checked={selectedOrderIds.includes(order.id)} readOnly /></div>
+                   <div className="flex justify-between items-start mb-1 pl-10 text-black">
+                    <h3 className="text-xs font-bold">Order ID: {order.id.substring(0, 8)}...</h3>
                     <div className="text-right">
-                      <p className="text-xs text-gray-400">{format(new Date(order.createdAt), 'dd/MM/yyyy')}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${order.status === OrderStatus.SHIPPED ? 'bg-blue-500/20 text-blue-300' : 'bg-gray-500/20 text-gray-300'}`}>
-                        {order.status}
-                      </span>
+                      <p className="text-xs">{format(new Date(order.createdAt), 'dd/MM/yyyy')}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${order.status === OrderStatus.SHIPPED ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>{order.status}</span>
                     </div>
                   </div>
-                  <div className="bg-white rounded-md overflow-hidden">
-                    <Invoice
+                  <Invoice order={order} businessName={tenant.businessName} businessAddress={tenant.businessAddress} businessPhone={tenant.businessPhone} invoiceNumber={`${tenant.invoicePrefix || 'INV'}-${order.number}`} isMultiPrint={true} showPrintControls={false} />
+                </div>
+              ))}
+              {currentList.length === 0 && (<div className="col-span-full p-8 text-center text-gray-500">No orders in this tab.</div>)}
+            </div>
+          </div>
+        </Tabs>
+      </div>
+
+      {/* --- UPDATED: Print view now uses chunking for pagination --- */}
+      <div className="hidden print:block bg-white text-black">
+        {chunk(ordersToPrint, 8).map((pageOfOrders, pageIndex) => (
+          <div key={pageIndex} className="print-page-container">
+            <div className="grid grid-cols-2 grid-rows-4  h-full">
+              {pageOfOrders.map((order) => (
+                <div key={order.id} className="invoice-item">
+                   <Invoice
                       order={order}
                       businessName={tenant.businessName}
                       businessAddress={tenant.businessAddress}
@@ -179,39 +214,11 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
                       isMultiPrint={true}
                       showPrintControls={false}
                     />
-                  </div>
                 </div>
               ))}
-              {currentList.length === 0 && (
-                <div className="col-span-full p-8 text-center text-gray-500">No orders in this tab.</div>
-              )}
             </div>
           </div>
-        </Tabs>
-      </div>
-
-     {/* Print View */}
-     <div className="hidden print:block bg-white text-black">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-4 max-h-[70vh] overflow-y-auto">
-          {currentList.map(order => (
-            <div key={order.id} className={`rounded-lg border border-black p-2 relative cursor-pointer ${selectedOrderIds.includes(order.id) }`} >
-              <div className="bg-white rounded-md overflow-hidden">
-                <Invoice
-                  order={order}
-                  businessName={tenant.businessName}
-                  businessAddress={tenant.businessAddress}
-                  businessPhone={tenant.businessPhone}
-                  invoiceNumber={`${tenant.invoicePrefix || 'INV'}-${order.number}`}
-                  isMultiPrint={true}
-                  showPrintControls={false}
-                />
-              </div>
-            </div>
-          ))}
-          {currentList.length === 0 && (
-            <div className="col-span-full p-8 text-center text-gray-500">No orders in this tab.</div>
-          )}
-        </div>
+        ))}
       </div>
     </>
   );

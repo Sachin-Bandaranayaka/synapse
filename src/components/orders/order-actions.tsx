@@ -113,7 +113,7 @@ export function OrderActions({ order, user }: OrderActionsProps) {
           onClick={handleGenerateInvoice}
           className="text-blue-400 hover:text-blue-300 text-sm"
         >
-          Invoice
+          {/* Invoice */}
         </button>
       )}
     </div>
