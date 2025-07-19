@@ -125,7 +125,6 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
         @media print {
           @page {
             size: A4 portrait;
-            margin: 1cm;
           }
           body {
             background-color: #fff !important;
