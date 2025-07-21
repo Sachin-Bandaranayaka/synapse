@@ -125,8 +125,11 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
         @media print {
           @page {
             size: A4 portrait;
+            margin: 0;
           }
           body {
+            margin: 0;
+            padding: 0;
             background-color: #fff !important;
           }
           /* This container for each page of invoices forces a page break after it */
@@ -138,7 +141,7 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
           }
           .invoice-item {
             border: 1px solid #000;
-            padding: 4mm;
+            padding: 0mm;
             box-sizing: border-box;
             overflow: hidden;
             color: #000;
@@ -201,7 +204,7 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
       <div className="hidden print:block bg-white text-black">
         {chunk(ordersToPrint, 8).map((pageOfOrders, pageIndex) => (
           <div key={pageIndex} className="print-page-container">
-            <div className="grid grid-cols-2 grid-rows-4  h-full">
+            <div className="grid grid-cols-2 grid-rows-4 w-full h-full">
               {pageOfOrders.map((order) => (
                 <div key={order.id} className="invoice-item">
                    <Invoice
