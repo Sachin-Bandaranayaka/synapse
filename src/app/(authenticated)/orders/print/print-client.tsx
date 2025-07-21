@@ -127,14 +127,31 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
             size: A4 portrait;
             margin: 0;
           }
+          * {
+            -webkit-print-color-adjust: none !important;
+            print-color-adjust: none !important;
+            color-adjust: none !important;
+          }
           body {
             margin: 0;
-            padding: 0;
+            padding: 0;
             background-color: #fff !important;
+            background: #fff !important;
+          }
+          html {
+            background-color: #fff !important;
+            background: #fff !important;
+          }
+          /* Override any dark backgrounds */
+          .bg-gray-900, .bg-gray-800, .bg-gray-700 {
+            background-color: #fff !important;
+            background: #fff !important;
           }
           /* This container for each page of invoices forces a page break after it */
           .print-page-container {
             page-break-after: always;
+            background-color: #fff !important;
+            background: #fff !important;
           }
           .print-page-container:last-child {
             page-break-after: auto;
@@ -145,6 +162,8 @@ export function PrintClient({ initialOrders, tenant }: PrintClientProps) {
             box-sizing: border-box;
             overflow: hidden;
             color: #000;
+            background-color: #fff !important;
+            background: #fff !important;
           }
         }
       `}</style>

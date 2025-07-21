@@ -21,8 +21,14 @@ body {
   }
 
   body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    background-color: #fff !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  html {
+    background-color: #fff !important;
+    background: #fff !important;
   }
 
   .page-break-before {
