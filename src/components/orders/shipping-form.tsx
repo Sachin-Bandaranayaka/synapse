@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ExternalLinkIcon } from '@heroicons/react/outline';
+import { ArrowTopRightOnSquareIcon as ExternalLinkIcon } from '@heroicons/react/24/outline';
 import { FardaExpressService } from '@/lib/shipping/farda-express';
 import { TransExpressProvider } from '@/lib/shipping/trans-express';
 import { getAllDistricts, getCitiesByDistrict, getAllCities, TransExpressCity } from '@/lib/shipping/trans-express-cities';
@@ -32,8 +32,7 @@ interface ShippingFormProps {
     };
     fardaExpressClientId?: string;
     fardaExpressApiKey?: string;
-    transExpressUsername?: string;
-    transExpressPassword?: string;
+    transExpressApiKey?: string;
     royalExpressApiKey?: string;
 }
 
@@ -44,8 +43,7 @@ export function ShippingForm({
     order,
     fardaExpressClientId,
     fardaExpressApiKey,
-    transExpressUsername,
-    transExpressPassword,
+    transExpressApiKey,
     royalExpressApiKey,
 }: ShippingFormProps) {
     const router = useRouter();
@@ -379,16 +377,10 @@ export function ShippingForm({
             } else if (provider === ShippingProvider.TRANS_EXPRESS) {
                 try {
                     console.log('Creating Trans Express shipment...');
-                    if (!transExpressUsername || !transExpressPassword) {
-                        throw new Error('Trans Express credentials not provided.');
+                    if (!transExpressApiKey) {
+                        throw new Error('Trans Express API key not provided.');
                     }
-                    if (!transExpressUsername || !transExpressPassword) {
-                        throw new Error('Trans Express credentials not provided.');
-                    }
-                    if (!transExpressUsername || !transExpressPassword) {
-                        throw new Error('Trans Express credentials not provided.');
-                    }
-                    const transExpressService = new TransExpressProvider(transExpressUsername, transExpressPassword);
+                    const transExpressService = new TransExpressProvider(transExpressApiKey);
 
                     // Generate a unique order number
                     const orderNo = parseInt(`${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 100)}`);
@@ -963,9 +955,9 @@ export function ShippingForm({
                     )}
                 </motion.button>
 
-                {trackingNumber && provider && (
+                {trackingNumber && provider && getTrackingUrl() && (
                     <motion.a
-                        href={getTrackingUrl()}
+                        href={getTrackingUrl()!}
                         target="_blank"
                         rel="noopener noreferrer"
                         whileHover={{ scale: 1.02 }}
@@ -978,4 +970,4 @@ export function ShippingForm({
             </div>
         </form>
     );
-} 
+}

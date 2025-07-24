@@ -6,8 +6,7 @@ import { RoyalExpressProvider } from './royal-express';
 interface TenantApiKeys {
   fardaExpressClientId?: string;
   fardaExpressApiKey?: string;
-  transExpressUsername?: string;
-  transExpressPassword?: string;
+  transExpressApiKey?: string;
   royalExpressApiKey?: string;
 }
 
@@ -24,22 +23,19 @@ export class ShippingProviderFactory {
     }
 
     // Initialize Trans Express
-    if (tenantApiKeys.transExpressUsername && tenantApiKeys.transExpressPassword) {
+    if (tenantApiKeys.transExpressApiKey) {
       this.providers.set(
         'trans_express',
-        new TransExpressProvider(tenantApiKeys.transExpressUsername, tenantApiKeys.transExpressPassword)
+        new TransExpressProvider(tenantApiKeys.transExpressApiKey)
       );
     }
 
     // Initialize Royal Express
     if (tenantApiKeys.royalExpressApiKey) {
-      const [royalEmail, royalPassword] = tenantApiKeys.royalExpressApiKey.split(':');
-      if (royalEmail && royalPassword) {
-        this.providers.set(
-          'royal_express',
-          new RoyalExpressProvider(royalEmail, royalPassword)
-        );
-      }
+      this.providers.set(
+        'royal_express',
+        new RoyalExpressProvider(tenantApiKeys.royalExpressApiKey)
+      );
     }
   }
 

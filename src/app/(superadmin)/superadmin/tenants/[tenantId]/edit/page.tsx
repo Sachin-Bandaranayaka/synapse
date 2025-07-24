@@ -93,8 +93,9 @@ interface EditTenantPageProps {
 //   );
 // }
 
-export default async function EditTenantPage({ params }: { params: { tenantId: string } }) {
-  const { tenantId } = params;
+export default async function EditTenantPage({ params }: { params: Promise<{ tenantId: string }> }) {
+  const resolvedParams = await params;
+  const { tenantId } = resolvedParams;
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },

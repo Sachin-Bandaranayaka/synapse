@@ -8,10 +8,11 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
     request: Request,
-    { params }: { params: { productId: string } }
+    { params }: { params: Promise<{ productId: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
+        
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
 
         if (!session?.user) {
             return new NextResponse('Unauthorized', { status: 401 });
@@ -19,7 +20,7 @@ export async function GET(
 
         const stockAdjustments = await prisma.stockAdjustment.findMany({
             where: {
-                productId: params.productId,
+                productId: resolvedParams.productId,
             },
             include: {
                 adjustedBy: {

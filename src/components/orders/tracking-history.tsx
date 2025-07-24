@@ -48,7 +48,7 @@ export function TrackingHistory({ updates, trackingNumber, provider }: TrackingH
                 <h4 className="text-base font-medium text-white">Tracking Updates</h4>
                 {getTrackingUrl() && (
                     <a
-                        href={getTrackingUrl()}
+                        href={getTrackingUrl()!}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-indigo-400 hover:text-indigo-300"
@@ -112,4 +112,4 @@ export function TrackingHistory({ updates, trackingNumber, provider }: TrackingH
             </ul>
         </div>
     );
-} 
+}

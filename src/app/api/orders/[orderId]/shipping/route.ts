@@ -13,10 +13,11 @@ export const dynamic = 'force-dynamic';
 // SECURED POST HANDLER
 export async function POST(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
 
     // 1. Check for session and tenantId
     if (!session?.user?.tenantId) {
@@ -36,7 +37,7 @@ export async function POST(
     // 3. This update is now SECURE. It will only update the order if the ID matches
     // AND the order belongs to the current tenant.
     const updatedOrder = await prisma.order.update({
-      where: { id: params.orderId },
+      where: { id: resolvedParams.orderId },
       data: {
         status: 'SHIPPED',
         shippingProvider,
@@ -57,10 +58,11 @@ export async function POST(
 // SECURED GET HANDLER
 export async function GET(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
 
     if (!session?.user?.tenantId) {
       return new NextResponse('Unauthorized', { status: 401 });
@@ -71,7 +73,7 @@ export async function GET(
 
     // This find is now SECURE. It will only return the order if it belongs to the tenant.
     const order = await prisma.order.findUnique({
-      where: { id: params.orderId },
+      where: { id: resolvedParams.orderId },
       select: {
         shippingProvider: true,
         trackingNumber: true,

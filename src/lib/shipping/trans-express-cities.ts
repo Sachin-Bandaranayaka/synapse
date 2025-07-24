@@ -106,9 +106,8 @@ let locationsAPIInstance: TransExpressLocations | null = null;
 // Initialize the locations API
 function getLocationsAPI() {
     if (!locationsAPIInstance) {
-        const username = process.env.NEXT_PUBLIC_TRANS_EXPRESS_USERNAME || '';
-        const password = process.env.NEXT_PUBLIC_TRANS_EXPRESS_PASSWORD || '';
-        const transExpress = new TransExpressProvider(username, password);
+        const apiKey = process.env.NEXT_PUBLIC_TRANS_EXPRESS_API_KEY || '';
+        const transExpress = new TransExpressProvider(apiKey);
         locationsAPIInstance = new TransExpressLocations(transExpress);
     }
     return locationsAPIInstance;
@@ -135,7 +134,7 @@ export async function getDistrictByCityId(cityId: number): Promise<string> {
         const cities = await locationsAPI.getCities();
         const city = cities.find(c => c.id === cityId);
 
-        if (city) {
+        if (city && city.district_id) {
             const districtName = await locationsAPI.getDistrictNameById(city.district_id);
             return districtName;
         }
@@ -290,4 +289,4 @@ export async function getAllCities(): Promise<TransExpressCity[]> {
         // Fallback to hardcoded data
         return FALLBACK_TRANS_EXPRESS_CITIES;
     }
-} 
+}

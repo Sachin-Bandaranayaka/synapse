@@ -190,8 +190,8 @@ export class RoyalExpressLocations {
                 name: state.name
             }));
 
-            console.log(`Successfully fetched ${this.states.length} states from Royal Express API`);
-            return this.states;
+            console.log(`Successfully fetched ${this.states?.length || 0} states from Royal Express API`);
+            return this.states || FALLBACK_ROYAL_EXPRESS_STATES;
         } catch (error) {
             console.error('Failed to fetch states from Royal Express API, using fallback data:', error);
             this.states = FALLBACK_ROYAL_EXPRESS_STATES;
@@ -204,7 +204,7 @@ export class RoyalExpressLocations {
      */
     async getCities(): Promise<RoyalExpressCity[]> {
         if (this.cities) {
-            return this.cities;
+            return this.cities || FALLBACK_ROYAL_EXPRESS_CITIES;
         }
 
         try {
@@ -238,7 +238,7 @@ export class RoyalExpressLocations {
                 };
             });
 
-            return this.cities;
+            return this.cities || FALLBACK_ROYAL_EXPRESS_CITIES;
         } catch (error) {
             console.error('Failed to fetch cities from Royal Express API, using fallback data:', error);
             this.cities = FALLBACK_ROYAL_EXPRESS_CITIES;
@@ -464,4 +464,4 @@ export async function getValidStateNames(royalExpressProvider: RoyalExpressProvi
         // Return fallback state names
         return FALLBACK_ROYAL_EXPRESS_STATES.map(state => state.name).sort();
     }
-} 
+}

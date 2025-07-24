@@ -20,10 +20,11 @@ const productUpdateSchema = z.object({
 // GET handler is already secure, but we'll add an explicit permission check for consistency.
 export async function GET(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
     if (!session?.user?.tenantId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
@@ -34,7 +35,7 @@ export async function GET(
     
     const prisma = getScopedPrismaClient(session.user.tenantId);
     const product = await prisma.product.findUnique({
-      where: { id: params.productId },
+      where: { id: resolvedParams.productId },
       include: {
         _count: { select: { orders: true, leads: true } },
         stockAdjustments: { orderBy: { createdAt: 'desc' }, take: 1 },
@@ -56,10 +57,11 @@ export async function GET(
 // SECURED PUT HANDLER
 export async function PUT(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
     if (!session?.user?.tenantId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
@@ -69,7 +71,7 @@ export async function PUT(
     const validatedData = productUpdateSchema.parse(data);
 
     const currentProduct = await prisma.product.findUnique({
-      where: { id: params.productId },
+      where: { id: resolvedParams.productId },
     });
 
     if (!currentProduct) {
@@ -92,7 +94,7 @@ export async function PUT(
 
     const product = await prisma.$transaction(async (tx) => {
       const updatedProduct = await tx.product.update({
-        where: { id: params.productId },
+        where: { id: resolvedParams.productId },
         data: validatedData,
       });
 
@@ -125,10 +127,11 @@ export async function PUT(
 // --- FIX: SECURED SOFT DELETE HANDLER ---
 export async function DELETE(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
     if (!session?.user?.tenantId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
@@ -141,7 +144,7 @@ export async function DELETE(
 
     // Instead of deleting, we update the `isActive` flag to false.
     await prisma.product.update({
-      where: { id: params.productId },
+      where: { id: resolvedParams.productId },
       data: { isActive: false },
     });
 

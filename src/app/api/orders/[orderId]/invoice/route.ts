@@ -9,17 +9,18 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
 
     if (!session?.user) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
     const order = await prisma.order.findUnique({
-      where: { id: params.orderId },
+      where: { id: resolvedParams.orderId },
       include: {
         product: true,
         lead: true,

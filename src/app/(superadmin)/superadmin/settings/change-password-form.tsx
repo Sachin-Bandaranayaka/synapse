@@ -1,7 +1,8 @@
 // src/app/(superadmin)/superadmin/settings/change-password-form.tsx
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { updateSuperAdminPassword } from './actions';
 import { useEffect, useRef } from 'react';
 
@@ -15,7 +16,7 @@ function SubmitButton() {
 }
 
 export function ChangePasswordForm({ userId }: { userId: string }) {
-  const [state, dispatch] = useFormState(updateSuperAdminPassword, undefined);
+  const [state, dispatch] = useActionState(updateSuperAdminPassword, undefined);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {

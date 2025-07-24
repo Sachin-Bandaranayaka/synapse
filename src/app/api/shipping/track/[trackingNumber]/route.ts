@@ -14,7 +14,7 @@ interface RouteParams {
 
 export async function GET(
   request: Request,
-  { params }: { params: RouteParams }
+  { params }: { params: Promise<RouteParams> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -23,9 +23,11 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
+    const resolvedParams = await params;
+
     // Find the order with this tracking number
     const order = await prisma.order.findFirst({
-      where: { trackingNumber: params.trackingNumber },
+      where: { trackingNumber: resolvedParams.trackingNumber },
       include: {
         trackingUpdates: {
           orderBy: {
@@ -61,8 +63,7 @@ export async function GET(
       select: {
         fardaExpressClientId: true,
         fardaExpressApiKey: true,
-        transExpressUsername: true,
-        transExpressPassword: true,
+        transExpressApiKey: true,
         royalExpressApiKey: true,
       },
     });
@@ -74,15 +75,14 @@ export async function GET(
     const shippingProviderFactory = new ShippingProviderFactory({
       fardaExpressClientId: tenant.fardaExpressClientId || undefined,
       fardaExpressApiKey: tenant.fardaExpressApiKey || undefined,
-      transExpressUsername: tenant.transExpressUsername || undefined,
-      transExpressPassword: tenant.transExpressPassword || undefined,
+      transExpressApiKey: tenant.transExpressApiKey || undefined,
       royalExpressApiKey: tenant.royalExpressApiKey || undefined,
     });
 
     const provider = shippingProviderFactory.getProvider(providerName);
 
     // Track the shipment
-    const status = await provider.trackShipment(params.trackingNumber);
+    const status = await provider.trackShipment(resolvedParams.trackingNumber);
 
     // Update order status if needed
     if (status === 'DELIVERED' && order.status !== 'DELIVERED') {

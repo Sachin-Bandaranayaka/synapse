@@ -2,7 +2,8 @@
 
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { createTenant } from './actions';
 import { Tenant } from '@prisma/client';
 
@@ -17,7 +18,7 @@ function SubmitButton() {
 
 // The form now accepts the list of tenants as a prop
 export function CreateTenantForm({ tenants }: { tenants: Tenant[] }) {
-  const [state, dispatch] = useFormState(createTenant, undefined);
+  const [state, dispatch] = useActionState(createTenant, undefined);
 
   return (
     <form action={dispatch} className="mt-8 max-w-xl">

@@ -111,12 +111,86 @@ export async function createOrderFromLead(data: CreateOrderData) {
   return orderResult;
 }
 
-// Other functions in the file remain unchanged
-export async function updateOrderStatus(orderId: string, status: OrderStatus, tenantId: string) {
+// Enhanced order status update with business logic
+export async function updateOrderStatus(orderId: string, status: OrderStatus, tenantId: string, userId?: string) {
   const prisma = getScopedPrismaClient(tenantId);
-  return await prisma.order.update({
-    where: { id: orderId },
-    data: { status },
+  
+  return await prisma.$transaction(async (tx) => {
+    // Get current order with product details
+    const currentOrder = await tx.order.findUnique({
+      where: { id: orderId },
+      include: { product: true }
+    });
+    
+    if (!currentOrder) {
+      throw new Error('Order not found');
+    }
+    
+        // Validate status transitions with comprehensive business rules
+    const validTransitions = {
+      'PENDING': ['CONFIRMED', 'CANCELLED'],
+      'CONFIRMED': ['SHIPPED', 'CANCELLED'],
+      'SHIPPED': ['DELIVERED'], // Cannot cancel shipped orders
+      'DELIVERED': ['RETURNED'],
+      'CANCELLED': [], // Cannot transition from cancelled
+      'RETURNED': []   // Cannot transition from returned
+    };
+    
+    const allowedStatuses = validTransitions[currentOrder.status as keyof typeof validTransitions] as OrderStatus[];
+    if (!allowedStatuses.includes(status)) {
+      throw new Error(`Invalid status transition from ${currentOrder.status} to ${status}`);
+    }
+    
+    // Business rule: Prevent cancellation of shipped, delivered, or returned orders
+    if (status === OrderStatus.CANCELLED && 
+        ['SHIPPED', 'DELIVERED', 'RETURNED'].includes(currentOrder.status)) {
+      throw new Error(`Cannot cancel order that has been ${currentOrder.status.toLowerCase()}. Please process a return instead.`);
+    }
+    
+    // Business rule: Only allow returns for delivered orders
+    if (status === OrderStatus.RETURNED && currentOrder.status !== 'DELIVERED') {
+      throw new Error(`Can only return orders that have been delivered. Current status: ${currentOrder.status}`);
+    }
+    
+    // Handle inventory restoration for cancellations
+    if (status === OrderStatus.CANCELLED && currentOrder.status !== OrderStatus.CANCELLED) {
+      // Restore inventory for cancelled orders
+      await tx.product.update({
+        where: { id: currentOrder.product.id },
+        data: {
+          stock: {
+            increment: currentOrder.quantity
+          }
+        }
+      });
+      
+      // Create stock adjustment record
+      if (userId) {
+        await tx.stockAdjustment.create({
+          data: {
+            tenant: { connect: { id: tenantId } },
+            product: { connect: { id: currentOrder.product.id } },
+            adjustedBy: { connect: { id: userId } },
+            quantity: currentOrder.quantity,
+            reason: `Order cancellation: ${orderId}`,
+            previousStock: currentOrder.product.stock,
+            newStock: currentOrder.product.stock + currentOrder.quantity,
+          }
+        });
+      }
+    }
+    
+    // Update order status
+    const updatedOrder = await tx.order.update({
+      where: { id: orderId },
+      data: { 
+        status,
+        updatedAt: new Date()
+      },
+      include: { product: true }
+    });
+    
+    return updatedOrder;
   });
 }
 

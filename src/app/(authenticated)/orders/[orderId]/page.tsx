@@ -9,9 +9,9 @@ import { PrintButton } from '@/components/orders/print-button';
 import { CancelOrderButton } from '@/components/orders/cancel-order-button';
 
 interface OrderDetailsPageProps {
-    params: {
+    params: Promise<{
         orderId: string;
-    };
+    }>;
 }
 
 export default async function OrderDetailsPage({ params }: OrderDetailsPageProps) {
@@ -21,11 +21,12 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
         return redirect('/auth/signin');
     }
 
+    const resolvedParams = await params;
     const scopedPrisma = getScopedPrismaClient(session.user.tenantId);
 
     const [order, tenant] = await Promise.all([
         scopedPrisma.order.findUnique({
-            where: { id: params.orderId },
+            where: { id: resolvedParams.orderId },
             include: {
                 product: true,
                 lead: true,
@@ -100,8 +101,7 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                                             }}
                                             fardaExpressClientId={tenant.fardaExpressClientId || undefined}
                                             fardaExpressApiKey={tenant.fardaExpressApiKey || undefined}
-                                            transExpressUsername={tenant.transExpressUsername || undefined}
-                                            transExpressPassword={tenant.transExpressPassword || undefined}
+                                            transExpressApiKey={tenant.transExpressApiKey || undefined}
                                             royalExpressApiKey={tenant.royalExpressApiKey || undefined}
                                         />
                                     </div>
@@ -117,7 +117,7 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                                     <div className="border-t border-gray-700 px-6 py-5">
                                         <div className="flex flex-col space-y-4">
                                             <p className="text-sm text-gray-400">If the customer wants to cancel this order, you can do so here. This action cannot be undone.</p>
-                                            <CancelOrderButton orderId={order.id} />
+                                            <CancelOrderButton orderId={order.id} orderStatus={order.status} />
                                         </div>
                                     </div>
                                 </div>

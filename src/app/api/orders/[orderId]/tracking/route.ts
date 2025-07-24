@@ -14,10 +14,11 @@ const prisma = new PrismaClient();
 
 export async function GET(
     request: Request,
-    { params }: { params: { orderId: string } }
+    { params }: { params: Promise<{ orderId: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
+        
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
 
         if (!session?.user) {
             return new NextResponse('Unauthorized', { status: 401 });
@@ -25,7 +26,7 @@ export async function GET(
 
         // Get order with shipping details
         const order = await prisma.order.findUnique({
-            where: { id: params.orderId },
+            where: { id: resolvedParams.orderId },
             select: {
                 id: true,
                 status: true,
@@ -42,8 +43,7 @@ export async function GET(
                     select: {
                         fardaExpressClientId: true,
                         fardaExpressApiKey: true,
-                        transExpressUsername: true,
-                        transExpressPassword: true,
+                        transExpressApiKey: true,
                         royalExpressApiKey: true,
                     },
                 },
@@ -78,20 +78,18 @@ export async function GET(
                 );
             }
             const fardaService = new FardaExpressService(fardaClientId, fardaApiKey);
-            trackingInfo = await fardaService.trackShipment(order.trackingNumber);
+            const shipmentStatus = await fardaService.trackShipment(order.trackingNumber);
 
             // Update order status based on tracking info
             const updatedOrder = await prisma.order.update({
                 where: { id: order.id },
                 data: {
-                    status: trackingInfo.status === 'DELIVERED' ? 'DELIVERED' : 'SHIPPED',
-                    deliveredAt: trackingInfo.status === 'DELIVERED' ? new Date() : null,
+                    status: shipmentStatus === ShipmentStatus.DELIVERED ? 'DELIVERED' : 'SHIPPED',
+                    deliveredAt: shipmentStatus === ShipmentStatus.DELIVERED ? new Date() : null,
                     trackingUpdates: {
                         create: {
-                            status: trackingInfo.status,
-                            location: trackingInfo.location,
-                            description: trackingInfo.description,
-                            timestamp: new Date(trackingInfo.timestamp),
+                            status: shipmentStatus,
+                            timestamp: new Date(),
                             tenantId: order.tenantId,
                         },
                     },
@@ -106,36 +104,35 @@ export async function GET(
             });
 
             // Send notification if status has changed
-            if (trackingInfo.status !== order.status) {
+            if (shipmentStatus !== order.status) {
                 // TODO: Implement notification service
                 // await sendTrackingUpdate({
                 //   phone: order.customerPhone,
                 //   email: order.customerEmail,
-                //   status: trackingInfo.status,
-                //   location: trackingInfo.location,
-                //   description: trackingInfo.description,
+                //   status: shipmentStatus,
                 // });
             }
 
             return NextResponse.json(updatedOrder);
         } else if (order.shippingProvider === 'TRANS_EXPRESS') {
             try {
-                const transUsername = order.tenant?.transExpressUsername;
-                const transPassword = order.tenant?.transExpressPassword;
+                
+    const resolvedParams = await params;const transApiKey = order.tenant?.transExpressApiKey;
 
-                if (!transUsername || !transPassword) {
-                    console.error(`Trans Express credentials missing for tenant ${order.tenantId}`);
+                if (!transApiKey) {
+                    console.error(`Trans Express API key missing for tenant ${order.tenantId}`);
                     return NextResponse.json(
-                        { error: 'Trans Express credentials missing' },
+                        { error: 'Trans Express API key missing' },
                         { status: 500 }
                     );
                 }
 
-                const transExpressService = new TransExpressProvider(transUsername, transPassword);
+                const transExpressService = new TransExpressProvider(transApiKey);
                 console.log('Tracking Trans Express shipment:', order.trackingNumber);
 
                 try {
-                    const shipmentStatus = await transExpressService.trackShipment(order.trackingNumber);
+                    
+    const resolvedParams = await params;const shipmentStatus = await transExpressService.trackShipment(order.trackingNumber);
                     console.log('Trans Express tracking status received:', shipmentStatus);
 
                     // Update order status based on tracking info
@@ -199,7 +196,8 @@ export async function GET(
             }
         } else if (order.shippingProvider === 'ROYAL_EXPRESS') {
             try {
-                const royalApiKey = order.tenant?.royalExpressApiKey;
+                
+    const resolvedParams = await params;const royalApiKey = order.tenant?.royalExpressApiKey;
 
                 if (!royalApiKey) {
                     console.error(`Royal Express API key missing for tenant ${order.tenantId}`);
@@ -290,4 +288,4 @@ export async function GET(
             { status: 500 }
         );
     }
-} 
+}

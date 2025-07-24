@@ -130,7 +130,7 @@ export async function sendLeadAssignment(leadId: string) {
       leadId: lead.id,
       customerName: (lead.csvData as any).name,
       productName: lead.product.name,
-      assignedTo: lead.assignedTo.name,
+      assignedTo: lead.assignedTo.name || 'Unknown User',
     })
   );
 
@@ -225,8 +225,8 @@ export async function sendShipmentUpdate(orderId: string, trackingNumber: string
     ShipmentUpdate({
       trackingNumber,
       status,
-      provider: order.shippingProvider,
-      estimatedDelivery: null,
+      provider: order.shippingProvider || 'Unknown Provider',
+      estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
       orderNumber: order.id,
       customerName: order.customerName,
     })

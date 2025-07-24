@@ -13,7 +13,7 @@ const statusSchema = z.object({
 
 export async function PUT(
     request: Request,
-    { params }: { params: { leadId: string } }
+    { params }: { params: Promise<{ leadId: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -22,12 +22,13 @@ export async function PUT(
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
+        const resolvedParams = await params;
         const data = await request.json();
         const validatedData = statusSchema.parse(data);
 
         // Get the lead and verify it exists
         const lead = await prisma.lead.findUnique({
-            where: { id: params.leadId },
+            where: { id: resolvedParams.leadId },
         });
 
         if (!lead) {
@@ -47,7 +48,7 @@ export async function PUT(
 
         // Update lead status
         const updatedLead = await prisma.lead.update({
-            where: { id: params.leadId },
+            where: { id: resolvedParams.leadId },
             data: {
                 status: validatedData.status,
             },
@@ -72,4 +73,4 @@ export async function PUT(
             { status: 500 }
         );
     }
-} 
+}

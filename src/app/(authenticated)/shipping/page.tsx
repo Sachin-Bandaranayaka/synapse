@@ -32,7 +32,7 @@ export default async function ShippingTrackingPage() {
         shippingProvider: { not: null },
         trackingNumber: { not: null },
         // Only filter by user ID if the user is a TEAM_MEMBER AND they DON'T have permission to view all.
-        ...(!canViewAll && user.role === 'TEAM_MEMBER' && { userId: user.id }),
+        ...(!canViewAll && user.role === 'TEAM_MEMBER' ? { userId: user.id } : {}),
     };
 
     const shippedOrders = await prisma.order.findMany({

@@ -8,10 +8,11 @@ interface User {
   id: string;
   email: string;
   name: string | null;
-  role: string;
+  role: 'ADMIN' | 'TEAM_MEMBER' | 'SUPER_ADMIN';
   createdAt: string;
   totalOrders: number;
   totalLeads: number;
+  permissions: string[];
 }
 
 // --- FIX: Update props to handle actions ---
@@ -23,10 +24,15 @@ interface UserListProps {
 }
 
 export function UserList({ users, currentUserId, onEdit, onDelete }: UserListProps) {
-  const getRoleBadgeColor = (role: string) => {
-    return role === 'ADMIN'
-      ? 'bg-indigo-900/50 text-indigo-300 ring-indigo-900/50'
-      : 'bg-green-900/50 text-green-300 ring-green-900/50';
+  const getRoleBadgeColor = (role: 'ADMIN' | 'TEAM_MEMBER' | 'SUPER_ADMIN') => {
+    switch (role) {
+      case 'ADMIN':
+        return 'bg-indigo-900/50 text-indigo-300 ring-indigo-900/50';
+      case 'SUPER_ADMIN':
+        return 'bg-purple-900/50 text-purple-300 ring-purple-900/50';
+      default:
+        return 'bg-green-900/50 text-green-300 ring-green-900/50';
+    }
   };
 
   return (
@@ -59,7 +65,7 @@ export function UserList({ users, currentUserId, onEdit, onDelete }: UserListPro
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getRoleBadgeColor(user.role)}`}>
-                  {user.role === 'TEAM_MEMBER' ? 'Team Member' : 'Admin'}
+                  {user.role === 'TEAM_MEMBER' ? 'Team Member' : user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-100">

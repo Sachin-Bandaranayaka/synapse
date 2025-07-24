@@ -1,7 +1,8 @@
 // src/app/(superadmin)/superadmin/settings/create-admin-form.tsx
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { createNewSuperAdmin } from './actions';
 import { useEffect, useRef } from 'react';
 
@@ -15,7 +16,7 @@ function SubmitButton() {
 }
 
 export function CreateAdminForm({ tenantId }: { tenantId: string }) {
-  const [state, dispatch] = useFormState(createNewSuperAdmin, undefined);
+  const [state, dispatch] = useActionState(createNewSuperAdmin, undefined);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {

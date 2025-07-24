@@ -15,21 +15,30 @@ interface CurfoxAuthResponse {
 }
 
 export class RoyalExpressProvider implements ShippingProvider {
-    private apiKey: string;
-    private email: string;
-    private password: string;
-    private apiUrl: string;
-    private tenant: string;
+    private apiKey!: string;
+    private email!: string;
+    private password!: string;
+    private apiUrl!: string;
+    private tenant!: string;
     private authToken: string | null = null;
     private readonly CREATE_SHIPMENT_ENDPOINT = '/shipments';
     private readonly TRACK_SHIPMENT_ENDPOINT = '/tracking';
     private readonly LOCATIONS_ENDPOINT = '/locations';
 
-    constructor(email: string, password: string, tenant?: string) {
-        this.email = email;
-        this.password = password;
+    constructor(royalExpressApiKey: string, tenant?: string) {
+        // Split the API key into email and password (format: email:password)
+        const [email, password] = royalExpressApiKey.split(':');
+        if (!email || !password) {
+            // Fallback to environment variables if the API key format is invalid
+            this.email = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_EMAIL || process.env.ROYAL_EXPRESS_EMAIL || '';
+            this.password = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_PASSWORD || process.env.ROYAL_EXPRESS_PASSWORD || '';
+        } else {
+            this.email = email;
+            this.password = password;
+        }
+        this.apiKey = royalExpressApiKey;
         this.apiUrl = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_API_URL || 'https://v1.api.curfox.com/api/public';
-        this.tenant = tenant || 'developers'; // Default to 'developers' if not provided
+        this.tenant = tenant || 'royalexpress'; // Default to 'royalexpress' if not provided
         console.log('Initialized Royal Express (Curfox DMS) provider with API URL:', this.apiUrl);
         console.log('Using tenant:', this.tenant);
     }
@@ -444,7 +453,7 @@ The state name must match exactly, including capitalization.`);
             const email = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_EMAIL || '';
             const password = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_PASSWORD || '';
             const tenant = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_TENANT || 'developers';
-            const provider = new RoyalExpressProvider(email, password, tenant);
+            const provider = new RoyalExpressProvider(email, password);
 
             // Authenticate and fetch states
             console.log('Fetching valid states from Royal Express API...');
@@ -485,4 +494,4 @@ The state name must match exactly, including capitalization.`);
 
         return stateNameMap[stateName] || stateName;
     }
-} 
+}

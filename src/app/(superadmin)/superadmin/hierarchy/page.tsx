@@ -52,7 +52,7 @@ const TenantNode = ({ tenant, level }: { tenant: TenantWithReferrals, level: num
   );
 };
 
-const recursiveReferralInclude = (depth: number) => {
+const recursiveReferralInclude = (depth: number): any => {
   if (depth === 0) return true;
   return { include: { referrals: recursiveReferralInclude(depth - 1) } };
 };

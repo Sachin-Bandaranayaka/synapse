@@ -18,8 +18,7 @@ const settingsSchema = z.object({
     defaultShippingProvider: z.nativeEnum(ShippingProvider).optional(),
     fardaExpressClientId: z.string().optional(),
     fardaExpressApiKey: z.string().optional(),
-    transExpressUsername: z.string().optional(),
-    transExpressPassword: z.string().optional(),
+    transExpressApiKey: z.string().optional(),
     royalExpressApiKey: z.string().optional(),
 });
 
@@ -27,11 +26,11 @@ const settingsSchema = z.object({
 export async function updateTenantSettings(
   prevState: { message: string, status: 'error' | 'success' } | undefined,
   formData: FormData
-) {
+): Promise<{ status: 'error' | 'success', message: string }> {
   const session = await getSession();
 
   if (!session?.user?.tenantId || session.user.role !== 'ADMIN') {
-    return { status: 'error', message: 'Unauthorized' };
+    return { status: 'error' as const, message: 'Unauthorized' };
   }
 
   // --- FIX: Create a plain object from formData for validation ---
@@ -44,7 +43,7 @@ export async function updateTenantSettings(
     // Filter out any empty API key fields so they don't overwrite existing keys with an empty string
     const dataToUpdate: Partial<typeof validatedData> = { ...validatedData };
     if (!dataToUpdate.fardaExpressApiKey) delete dataToUpdate.fardaExpressApiKey;
-    if (!dataToUpdate.transExpressPassword) delete dataToUpdate.transExpressPassword;
+    if (!dataToUpdate.transExpressApiKey) delete dataToUpdate.transExpressApiKey;
     if (!dataToUpdate.royalExpressApiKey) delete dataToUpdate.royalExpressApiKey;
 
 
@@ -56,16 +55,16 @@ export async function updateTenantSettings(
     });
 
     revalidatePath('/settings');
-    return { status: 'success', message: 'Settings updated successfully.' };
+    return { status: 'success' as const, message: 'Settings updated successfully.' };
 
   } catch (error) {
     console.error('Error updating tenant settings:', error);
     
     if (error instanceof z.ZodError) {
-        return { status: 'error', message: `Invalid data: ${error.errors.map(e => e.message).join(', ')}` };
+        return { status: 'error' as const, message: `Invalid data: ${error.errors.map(e => e.message).join(', ')}` };
     }
 
     const errorMessage = error instanceof Error ? error.message : 'An unknown database error occurred.';
-    return { status: 'error', message: `Failed to update settings: ${errorMessage}` };
+    return { status: 'error' as const, message: `Failed to update settings: ${errorMessage}` };
   }
 }

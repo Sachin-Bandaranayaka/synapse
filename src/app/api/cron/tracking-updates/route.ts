@@ -48,8 +48,7 @@ export async function GET(request: Request) {
                     select: {
                         fardaExpressClientId: true,
                         fardaExpressApiKey: true,
-                        transExpressUsername: true,
-                        transExpressPassword: true,
+                        transExpressApiKey: true,
                         royalExpressApiKey: true,
                     },
                 },
@@ -99,19 +98,18 @@ export async function GET(request: Request) {
                         };
                     } else if (order.shippingProvider === ShippingProvider.TRANS_EXPRESS) {
                         try {
-                            const transUsername = order.tenant?.transExpressUsername;
-                            const transPassword = order.tenant?.transExpressPassword;
+                            const transApiKey = order.tenant?.transExpressApiKey;
 
-                            if (!transUsername || !transPassword) {
-                                console.warn(`Trans Express credentials missing for tenant ${order.tenantId}`);
+                            if (!transApiKey) {
+                                console.warn(`Trans Express API key missing for tenant ${order.tenantId}`);
                                 return {
                                     orderId: order.id,
                                     success: false,
-                                    error: 'Trans Express credentials missing',
+                                    error: 'Trans Express API key missing',
                                 };
                             }
 
-                            const transExpressService = new TransExpressProvider(transUsername, transPassword);
+                            const transExpressService = new TransExpressProvider(transApiKey);
                             const shipmentStatus = await transExpressService.trackShipment(order.trackingNumber!);
 
                             // Update order status
@@ -228,4 +226,4 @@ export async function GET(request: Request) {
             { status: 500 }
         );
     }
-} 
+}

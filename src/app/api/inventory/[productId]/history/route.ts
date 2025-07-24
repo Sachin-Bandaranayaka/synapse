@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,8 +19,9 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
+    const resolvedParams = await params;
     // 2. Pass the tenantId to the secure function
-    const stockHistory = await getStockHistory(params.productId, session.user.tenantId);
+    const stockHistory = await getStockHistory(resolvedParams.productId, session.user.tenantId);
 
     return NextResponse.json(stockHistory);
   } catch (error) {

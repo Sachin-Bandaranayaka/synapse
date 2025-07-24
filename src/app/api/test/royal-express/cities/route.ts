@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         // For testing purposes, use a placeholder or fetch from a test tenant if available
         const testEmail = 'test@example.com'; // Replace with a valid test email if needed
         const testPassword = 'testpassword'; // Replace with a valid test password if needed
-        const provider = new RoyalExpressProvider(testEmail, testPassword, tenant || undefined);
+        const provider = new RoyalExpressProvider(testEmail, testPassword);
 
         console.log('Fetching cities with tenant:', tenant || 'default');
 
@@ -72,4 +72,4 @@ export async function GET(request: Request) {
             error: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });
     }
-} 
+}

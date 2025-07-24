@@ -9,18 +9,31 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
+    
+    const resolvedParams = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
+    const body = await request.json();
+    const { reason, description, refundMethod, returnShipping } = body;
+
+    // Validate required fields
+    if (!reason || !description || !refundMethod || !returnShipping) {
+      return NextResponse.json(
+        { error: 'Missing required return information' },
+        { status: 400 }
+      );
+    }
+
     // Get the order and verify it exists
     const order = await prisma.order.findUnique({
-      where: { id: params.orderId },
+      where: { id: resolvedParams.orderId },
       include: {
         product: true
       }
@@ -41,11 +54,19 @@ export async function POST(
       );
     }
 
+    // Check if order can be returned (only DELIVERED or SHIPPED orders)
+    if (!['DELIVERED', 'SHIPPED'].includes(order.status)) {
+      return NextResponse.json(
+        { error: 'Order cannot be returned. Only delivered or shipped orders are eligible for return.' },
+        { status: 400 }
+      );
+    }
+
     // Update order status and adjust product stock in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Update order status to RETURNED
       const updatedOrder = await tx.order.update({
-        where: { id: params.orderId },
+        where: { id: resolvedParams.orderId },
         data: { status: OrderStatus.RETURNED },
         include: {
           product: true

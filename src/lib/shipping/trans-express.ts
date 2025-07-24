@@ -8,25 +8,21 @@ import {
 } from './types';
 
 export class TransExpressProvider implements ShippingProvider {
-  private apiKey: string;
-  private apiUrl: string;
+  private apiKey!: string;
+  private apiUrl!: string;
   private readonly CREATE_SHIPMENT_ENDPOINT = '/orders/upload/single-auto';
   private readonly TRACK_SHIPMENT_ENDPOINT = '/tracking';
   private readonly DISTRICTS_ENDPOINT = '/districts';
   private readonly CITIES_ENDPOINT = '/cities';
   private readonly PROVINCES_ENDPOINT = '/provinces';
 
-  constructor(username: string, password: string) {
-    this.username = username;
-    this.password = password;
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
     // Use the correct API URL from the documentation
     this.apiUrl = process.env.NEXT_PUBLIC_TRANS_EXPRESS_API_URL || 'https://portal.transexpress.lk/api';
     console.log('Initialized Trans Express provider with API URL:', this.apiUrl);
     console.log('Cities endpoint:', `${this.apiUrl}${this.CITIES_ENDPOINT}`);
   }
-
-  private username: string;
-  private password: string;
 
   getName(): string {
     return 'Trans Express';
@@ -49,7 +45,7 @@ export class TransExpressProvider implements ShippingProvider {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': `Basic ${btoa(`${this.username}:${this.password}`)}`,
+          'Authorization': `Bearer ${this.apiKey}`,
         },
         body: data ? JSON.stringify(data) : undefined,
       });

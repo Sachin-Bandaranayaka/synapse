@@ -76,11 +76,11 @@ export async function POST(request: Request) {
             });
         } catch (sessionError) {
             console.error('Session retrieval error:', {
-                error: sessionError.message,
-                stack: sessionError.stack
+                error: sessionError instanceof Error ? sessionError.message : 'Unknown error',
+                stack: sessionError instanceof Error ? sessionError.stack : undefined
             });
             return NextResponse.json(
-                { error: 'Session error', details: sessionError.message },
+                { error: 'Session error', details: sessionError instanceof Error ? sessionError.message : 'Unknown error' },
                 { status: 500 }
             );
         }
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
         } catch (parseError) {
             console.error('Request parsing error:', parseError);
             return NextResponse.json(
-                { error: 'Invalid request format', details: parseError.message },
+                { error: 'Invalid request format', details: parseError instanceof Error ? parseError.message : 'Unknown parsing error' },
                 { status: 400 }
             );
         }
@@ -262,33 +262,33 @@ export async function POST(request: Request) {
             return NextResponse.json(result);
         } catch (dbError) {
             console.error('Database operation error:', {
-                name: dbError.name,
-                message: dbError.message,
-                code: dbError.code, // Prisma error code
-                stack: dbError.stack
+                name: dbError instanceof Error ? dbError.name : 'Unknown',
+                message: dbError instanceof Error ? dbError.message : 'Unknown error',
+                code: (dbError as any)?.code, // Prisma error code
+                stack: dbError instanceof Error ? dbError.stack : undefined
             });
             return NextResponse.json(
                 {
                     error: 'Database operation failed',
-                    details: dbError.message,
-                    code: dbError.code
+                    details: dbError instanceof Error ? dbError.message : 'Unknown error',
+                    code: (dbError as any)?.code
                 },
                 { status: 500 }
             );
         }
     } catch (error) {
         console.error('Unhandled error in order creation:', {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-            cause: error.cause
+            name: error instanceof Error ? error.name : 'Unknown',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+            cause: error instanceof Error ? error.cause : undefined
         });
 
         return NextResponse.json(
             {
                 error: 'Unhandled error in order creation',
-                details: error.message,
-                type: error.name
+                details: error instanceof Error ? error.message : 'Unknown error',
+                type: error instanceof Error ? error.name : 'Unknown'
             },
             { status: 500 }
         );

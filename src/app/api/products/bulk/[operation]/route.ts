@@ -9,16 +9,17 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(
     request: Request,
-    { params }: { params: { operation: string } }
+    { params }: { params: Promise<{ operation: string }> }
 ) {
     try {
+        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        switch (params.operation) {
+        switch (resolvedParams.operation) {
             case 'update-stock':
                 return handleStockUpdate(session.user.id, session.user.tenantId);
             case 'export-csv':
@@ -191,4 +192,4 @@ async function handleLowStockCheck() {
             { status: 500 }
         );
     }
-} 
+}

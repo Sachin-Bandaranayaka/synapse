@@ -18,7 +18,7 @@ export type LeadWithDetails = PrismaLead & {
 export default async function LeadsPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await getServerSession(authOptions);
   
@@ -55,11 +55,12 @@ export default async function LeadsPage({
   });
 
   // 5. PASS DATA TO CLIENT COMPONENT
+  const resolvedSearchParams = await searchParams;
   return (
     <LeadsClient 
         initialLeads={leads as LeadWithDetails[]} 
         user={session.user as User}
-        searchParams={searchParams}
+        searchParams={resolvedSearchParams}
     />
   );
 }

@@ -18,11 +18,11 @@ const UpdateTenantSchema = z.object({
   fontColor: z.string().regex(/^#([0-9a-f]{3}){1,2}$/i, { message: "Must be a valid hex color code."}).optional().or(z.literal('')),
 });
 
-export async function updateTenant(tenantId: string, adminUserId: string, formData: FormData) {
+export async function updateTenant(tenantId: string, adminUserId: string, formData: FormData): Promise<void> {
   const validatedFields = UpdateTenantSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
-    return { errors: validatedFields.error.flatten().fieldErrors };
+    throw new Error('Validation failed');
   }
   
   const { name, email, ...brandingSettings } = validatedFields.data;
@@ -47,9 +47,9 @@ export async function updateTenant(tenantId: string, adminUserId: string, formDa
     ]);
   } catch (error) {
     if ((error as any).code === 'P2002') {
-        return { message: 'This email address is already in use.' };
+        throw new Error('This email address is already in use.');
     }
-    return { message: 'Database Error: Failed to update tenant.' };
+    throw new Error('Database Error: Failed to update tenant.');
   }
 
   revalidatePath('/superadmin/users');

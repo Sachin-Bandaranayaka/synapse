@@ -15,10 +15,11 @@ const UpdateOrderStatusSchema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
 
     // 1. Check for session and tenantId
     if (!session?.user?.tenantId) {
@@ -28,8 +29,8 @@ export async function PATCH(
     const json = await request.json();
     const { status } = UpdateOrderStatusSchema.parse(json);
 
-    // 2. Pass the tenantId to the update function
-    const order = await updateOrderStatus(params.orderId, status, session.user.tenantId);
+    // 2. Pass the tenantId and userId to the update function
+    const order = await updateOrderStatus(resolvedParams.orderId, status, session.user.tenantId, session.user.id);
 
     return NextResponse.json(order);
   } catch (error) {

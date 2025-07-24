@@ -15,7 +15,7 @@ import { Prisma } from '@prisma/client';
 // --- FIX: Add a DELETE handler for leads ---
 export async function DELETE(
   request: Request,
-  { params }: { params: { leadId: string } }
+  { params }: { params: Promise<{ leadId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -30,11 +30,12 @@ export async function DELETE(
       return new NextResponse('Forbidden', { status: 403 });
     }
 
+    const resolvedParams = await params;
     const prisma = getScopedPrismaClient(session.user.tenantId);
 
     // Check if the lead has been converted to an order
     const lead = await prisma.lead.findUnique({
-      where: { id: params.leadId },
+      where: { id: resolvedParams.leadId },
       include: { order: true },
     });
 
@@ -47,7 +48,7 @@ export async function DELETE(
     }
 
     await prisma.lead.delete({
-      where: { id: params.leadId },
+      where: { id: resolvedParams.leadId },
     });
 
     // Return a successful response with no content
@@ -62,7 +63,7 @@ export async function DELETE(
 // SECURED GET HANDLER
 export async function GET(
   request: Request,
-  { params }: { params: { leadId: string } }
+  { params }: { params: Promise<{ leadId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -71,12 +72,13 @@ export async function GET(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
+    const resolvedParams = await params;
     // Use the scoped client
     const prisma = getScopedPrismaClient(session.user.tenantId);
 
     // This query is now secure. It will only find the lead if it belongs to the current tenant.
     const lead = await prisma.lead.findUnique({
-      where: { id: params.leadId },
+      where: { id: resolvedParams.leadId },
       include: {
         product: true,
         assignedTo: { select: { id: true, name: true, email: true } },
@@ -103,7 +105,7 @@ export async function GET(
 // SECURED PUT HANDLER
 export async function PUT(
   request: Request,
-  { params }: { params: { leadId: string } }
+  { params }: { params: Promise<{ leadId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -112,6 +114,7 @@ export async function PUT(
       return new NextResponse('Unauthorized', { status: 401 });
     }
     
+    const resolvedParams = await params;
     // Use the scoped client for all operations
     const prisma = getScopedPrismaClient(session.user.tenantId);
 
@@ -120,7 +123,7 @@ export async function PUT(
 
     // Securely get the lead to check permissions and status
     const lead = await prisma.lead.findUnique({
-      where: { id: params.leadId },
+      where: { id: resolvedParams.leadId },
     });
 
     if (!lead) {
@@ -146,7 +149,7 @@ export async function PUT(
 
     // Securely update the lead
     const updatedLead = await prisma.lead.update({
-      where: { id: params.leadId },
+      where: { id: resolvedParams.leadId },
       data: {
         csvData: validatedData.csvData as unknown as Prisma.JsonObject,
         productCode: validatedData.productCode,

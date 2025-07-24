@@ -6,9 +6,9 @@ import { headers } from 'next/headers';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-
-  const host = headers().get('host');
-  const protocol = headers().get('x-forwarded-proto') || 'http';
+  const headersList = await headers();
+  const host = headersList.get('host');
+  const protocol = headersList.get('x-forwarded-proto') || 'http';
 
   // This object will check the critical environment variables as Vercel sees them.
   const debugInfo = {

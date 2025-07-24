@@ -50,8 +50,7 @@ export async function POST(request: Request) {
       select: {
         fardaExpressClientId: true,
         fardaExpressApiKey: true,
-        transExpressUsername: true,
-        transExpressPassword: true,
+        transExpressApiKey: true,
         royalExpressApiKey: true,
       },
     });
@@ -63,8 +62,7 @@ export async function POST(request: Request) {
     const shippingProviderFactory = new ShippingProviderFactory({
       fardaExpressClientId: tenant.fardaExpressClientId || undefined,
       fardaExpressApiKey: tenant.fardaExpressApiKey || undefined,
-      transExpressUsername: tenant.transExpressUsername || undefined,
-      transExpressPassword: tenant.transExpressPassword || undefined,
+      transExpressApiKey: tenant.transExpressApiKey || undefined,
       royalExpressApiKey: tenant.royalExpressApiKey || undefined,
     });
 

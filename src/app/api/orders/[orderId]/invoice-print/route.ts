@@ -13,10 +13,11 @@ const UpdateInvoicePrintStatusSchema = z.object({
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { orderId: string } }
+    { params }: { params: Promise<{ orderId: string }> }
 ) {
     try {
-        // Check authentication
+        
+    const resolvedParams = await params;// Check authentication
         const session = await getSession();
         if (!session) {
             return NextResponse.json(
@@ -37,7 +38,7 @@ export async function PATCH(
         }
 
         const { printed } = validation.data;
-        const orderId = params.orderId;
+        const orderId = resolvedParams.orderId;
 
         // Update invoice print status in the database
         const updatedOrder = await prisma.order.update({

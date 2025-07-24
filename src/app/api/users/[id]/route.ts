@@ -14,9 +14,10 @@ const userUpdateSchema = z.object({
 });
 
 // --- UPDATE User ---
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getServerSession(authOptions);
+    
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
     if (!session?.user?.tenantId || session.user.role !== 'ADMIN') {
       return new NextResponse('Unauthorized', { status: 401 });
     }
@@ -25,13 +26,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const body = await request.json();
     const validatedData = userUpdateSchema.parse(body);
     
-    const userToUpdate = await prisma.user.findUnique({ where: { id: params.id } });
+    const userToUpdate = await prisma.user.findUnique({ where: { id: resolvedParams.id } });
     if (!userToUpdate) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: {
         name: validatedData.name,
         email: validatedData.email,
@@ -48,14 +49,15 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 // --- FIX: SECURED SOFT DELETE HANDLER ---
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getServerSession(authOptions);
+    
+    const resolvedParams = await params;const session = await getServerSession(authOptions);
     if (!session?.user?.tenantId || session.user.role !== 'ADMIN') {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    if (session.user.id === params.id) {
+    if (session.user.id === resolvedParams.id) {
         return NextResponse.json({ error: 'You cannot delete yourself.' }, { status: 400 });
     }
 
@@ -64,7 +66,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     // Instead of deleting the user, mark them as inactive.
     // This preserves relations and allows the email to be reused in the future if needed.
     await prisma.user.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: { isActive: false },
     });
 

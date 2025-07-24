@@ -319,7 +319,7 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                                         <p className="font-medium">{order.product.name}</p>
                                         <p className="text-xs">Code: {order.product.code}</p>
                                         <p>Quantity: {order.quantity}</p>
-                                        {order.discount > 0 && (
+                                        {order.discount && order.discount > 0 && (
                                             <p>Discount: {new Intl.NumberFormat('en-LK', {
                                                 style: 'currency',
                                                 currency: 'LKR',
@@ -340,4 +340,4 @@ export function OrderJourney({ order }: OrderJourneyProps) {
             </motion.div>
         </div>
     );
-} 
+}

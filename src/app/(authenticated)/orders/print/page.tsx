@@ -9,9 +9,9 @@ import { Tenant } from '@prisma/client';
 
 // --- FIX: The page now accepts `searchParams` to read the URL ---
 interface PrintPageProps {
-    searchParams: {
+    searchParams: Promise<{
         ids?: string;
-    };
+    }>;
 }
 
 export default async function PrintPage({ searchParams }: PrintPageProps) {
@@ -27,7 +27,8 @@ export default async function PrintPage({ searchParams }: PrintPageProps) {
     }
 
     // --- FIX: Get the comma-separated IDs from the URL and split them into an array ---
-    const orderIds = searchParams.ids ? searchParams.ids.split(',') : [];
+    const resolvedSearchParams = await searchParams;
+    const orderIds = resolvedSearchParams.ids ? resolvedSearchParams.ids.split(',') : [];
 
     // If no IDs are provided, show an empty state instead of fetching all orders.
     if (orderIds.length === 0) {

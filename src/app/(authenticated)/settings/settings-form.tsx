@@ -2,7 +2,8 @@
 
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { updateTenantSettings } from './actions';
 // --- FIX: Import ShippingProvider enum from Prisma client ---
 import { Tenant, ShippingProvider } from '@prisma/client';
@@ -17,7 +18,7 @@ function SubmitButton() {
 }
 
 export function SettingsForm({ tenant }: { tenant: Tenant }) {
-  const [state, dispatch] = useFormState(updateTenantSettings, undefined);
+  const [state, dispatch] = useActionState(updateTenantSettings, undefined);
 
   return (
     <form action={dispatch} className="space-y-8 divide-y divide-gray-700">
@@ -82,11 +83,26 @@ export function SettingsForm({ tenant }: { tenant: Tenant }) {
           <p className="mt-1 text-sm text-gray-400">Enter your own API keys for shipping providers.</p>
         </div>
         <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-          <div className="sm:col-span-3"><label htmlFor="fardaExpressClientId" className="block text-sm font-medium text-gray-300">Farda Express Client ID</label><input type="text" name="fardaExpressClientId" id="fardaExpressClientId" defaultValue={tenant.fardaExpressClientId || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm" /></div>
-          <div className="sm:col-span-3"><label htmlFor="fardaExpressApiKey" className="block text-sm font-medium text-gray-300">Farda Express API Key</label><input type="password" name="fardaExpressApiKey" id="fardaExpressApiKey" defaultValue={tenant.fardaExpressApiKey || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm" /></div>
-          <div className="sm:col-span-3"><label htmlFor="transExpressUsername" className="block text-sm font-medium text-gray-300">Trans Express Username</label><input type="text" name="transExpressUsername" id="transExpressUsername" defaultValue={tenant.transExpressUsername || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm" /></div>
-          <div className="sm:col-span-3"><label htmlFor="transExpressPassword" className="block text-sm font-medium text-gray-300">Trans Express Password</label><input type="password" name="transExpressPassword" id="transExpressPassword" defaultValue={tenant.transExpressPassword || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm" /></div>
-          <div className="sm:col-span-6"><label htmlFor="royalExpressApiKey" className="block text-sm font-medium text-gray-300">Royal Express API Key</label><input type="password" name="royalExpressApiKey" id="royalExpressApiKey" defaultValue={tenant.royalExpressApiKey || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-700 text-white shadow-sm" /></div>
+          <div className="sm:col-span-3">
+            <label htmlFor="fardaExpressClientId" className="block text-sm font-medium text-gray-300">Farda Express Client ID</label>
+            <p className="mt-1 text-xs text-gray-400">Your Farda Express client identifier</p>
+            <input type="text" name="fardaExpressClientId" id="fardaExpressClientId" defaultValue={tenant.fardaExpressClientId || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm" />
+          </div>
+          <div className="sm:col-span-3">
+            <label htmlFor="fardaExpressApiKey" className="block text-sm font-medium text-gray-300">Farda Express API Key</label>
+            <p className="mt-1 text-xs text-gray-400">Your Farda Express API key</p>
+            <input type="password" name="fardaExpressApiKey" id="fardaExpressApiKey" defaultValue={tenant.fardaExpressApiKey || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm" />
+          </div>
+          <div className="sm:col-span-6">
+            <label htmlFor="transExpressApiKey" className="block text-sm font-medium text-gray-300">Trans Express API Key</label>
+            <p className="mt-1 text-xs text-gray-400">Enter your single API key for Trans Express</p>
+            <input type="password" name="transExpressApiKey" id="transExpressApiKey" defaultValue={tenant.transExpressApiKey || ''} className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm" />
+          </div>
+          <div className="sm:col-span-6">
+            <label htmlFor="royalExpressApiKey" className="block text-sm font-medium text-gray-300">Royal Express Credentials</label>
+            <p className="mt-1 text-xs text-gray-400">Enter in format: email:password (e.g., user@example.com:yourpassword)</p>
+            <input type="password" name="royalExpressApiKey" id="royalExpressApiKey" defaultValue={tenant.royalExpressApiKey || ''} placeholder="email:password" className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm" />
+          </div>
         </div>
       </div>
 

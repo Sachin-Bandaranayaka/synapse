@@ -16,7 +16,7 @@ const CreateAdminSchema = z.object({
   tenantId: z.string(), // Now passed from a hidden form field
 });
 
-// The signature is changed to the standard for useFormState
+// The signature is changed to the standard for useActionState
 export async function createNewSuperAdmin(prevState: any, formData: FormData) {
   const validatedFields = CreateAdminSchema.safeParse(Object.fromEntries(formData.entries()));
 
@@ -52,7 +52,7 @@ const UpdatePasswordSchema = z.object({
   newPassword: z.string().min(8, { message: "New password must be at least 8 characters." }),
 });
 
-// The signature is changed to the standard for useFormState
+// The signature is changed to the standard for useActionState
 export async function updateSuperAdminPassword(prevState: any, formData: FormData) {
   const validatedFields = UpdatePasswordSchema.safeParse(Object.fromEntries(formData.entries()));
 

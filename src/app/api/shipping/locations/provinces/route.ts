@@ -21,20 +21,19 @@ export async function GET() {
         const tenant = await prisma.tenant.findUnique({
             where: { id: tenantId },
             select: {
-                transExpressUsername: true,
-                transExpressPassword: true,
+                transExpressApiKey: true,
             },
         });
 
-        if (!tenant || !tenant.transExpressUsername || !tenant.transExpressPassword) {
+        if (!tenant || !tenant.transExpressApiKey) {
             return NextResponse.json(
-                { error: 'Trans Express credentials not configured for this tenant' },
-                { status: 500 }
+                { error: 'Trans Express API key not configured' },
+                { status: 400 }
             );
         }
 
         // Initialize the Trans Express provider
-        const transExpress = new TransExpressProvider(tenant.transExpressUsername, tenant.transExpressPassword);
+        const transExpress = new TransExpressProvider(tenant.transExpressApiKey);
 
         // Initialize the locations API
         const locationsAPI = new TransExpressLocations(transExpress);
@@ -51,4 +50,4 @@ export async function GET() {
             { status: 500 }
         );
     }
-} 
+}

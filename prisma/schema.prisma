@@ -56,8 +56,7 @@ model Tenant {
   // --- API KEY FIELDS ---
   fardaExpressClientId String?
   fardaExpressApiKey   String?
-  transExpressUsername String?
-  transExpressPassword String?
+  transExpressApiKey   String?
   royalExpressApiKey   String?
 
   // --- NEW INVOICE FIELDS ---

@@ -19,7 +19,7 @@ export async function testRoyalExpressIntegration(options?: {
         // This can use credentials from env vars or directly provided
         const email = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_EMAIL || 'janithbh123@gmail.com';
         const password = process.env.NEXT_PUBLIC_ROYAL_EXPRESS_PASSWORD || '905611623';
-        const tenant = options?.tenant || process.env.NEXT_PUBLIC_ROYAL_EXPRESS_TENANT || 'developers';
+        const tenant = options?.tenant || process.env.NEXT_PUBLIC_ROYAL_EXPRESS_TENANT || 'royalexpress';
 
         console.log(`Using credentials: ${email}`);
         console.log(`Using tenant: ${tenant}`);
@@ -152,4 +152,4 @@ if (require.main === module) {
             console.error('Unhandled error in test:', err);
             process.exit(1);
         });
-} 
+}

@@ -11,11 +11,12 @@ import { SortOrders } from '@/components/orders/sort-orders';
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await getServerSession(authOptions);
-  const searchQuery = (searchParams.query as string) || '';
-  const sortParam = (searchParams.sort as string) || 'createdAt:desc';
+  const resolvedSearchParams = await searchParams;
+  const searchQuery = (resolvedSearchParams.query as string) || '';
+  const sortParam = (resolvedSearchParams.sort as string) || 'createdAt:desc';
 
   if (!session?.user?.tenantId) {
     return redirect('/auth/signin');
@@ -34,15 +35,15 @@ export default async function OrdersPage({
   const orderBy = { [sortField]: sortDirection };
 
   const where: Prisma.OrderWhereInput = {
-    ...(!canViewAll && user.role === 'TEAM_MEMBER' && { userId: user.id }),
-    ...(searchQuery && {
+    ...(!canViewAll && user.role === 'TEAM_MEMBER' ? { userId: user.id } : {}),
+    ...(searchQuery ? {
       OR: [
         { id: { contains: searchQuery, mode: 'insensitive' } },
         { customerName: { contains: searchQuery, mode: 'insensitive' } },
         { customerPhone: { contains: searchQuery, mode: 'insensitive' } },
         { product: { name: { contains: searchQuery, mode: 'insensitive' } } },
       ],
-    }),
+    } : {}),
   };
 
   const orders = await prisma.order.findMany({

@@ -10,9 +10,9 @@ import { Prisma, User as PrismaUser, Lead as PrismaLead, Product } from '@prisma
 import { User } from 'next-auth';
 
 interface LeadDetailsPageProps {
-    params: {
+    params: Promise<{
         leadId: string;
-    };
+    }>;
 }
 
 export const metadata: Metadata = {
@@ -36,10 +36,11 @@ export default async function LeadDetailsPage({ params }: LeadDetailsPageProps) 
         redirect('/auth/signin');
     }
 
+    const resolvedParams = await params;
     const prisma = getScopedPrismaClient(session.user.tenantId);
 
     const lead = await prisma.lead.findUnique({
-        where: { id: params.leadId },
+        where: { id: resolvedParams.leadId },
         include: {
             product: true,
             assignedTo: { select: { id: true, name: true, email: true } },

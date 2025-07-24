@@ -8,12 +8,22 @@ import { motion } from 'framer-motion';
 
 interface CancelOrderButtonProps {
     orderId: string;
+    orderStatus: string;
+    isShipped?: boolean;
 }
 
-export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
+export function CancelOrderButton({ orderId, orderStatus, isShipped = false }: CancelOrderButtonProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    
+    // Check if cancellation is allowed
+    const canCancel = ['PENDING', 'CONFIRMED'].includes(orderStatus);
+    const isAlreadyCancelled = orderStatus === 'CANCELLED';
+    
+    if (isAlreadyCancelled || !canCancel) {
+        return null; // Don't show cancel button for shipped/delivered/returned orders
+    }
 
     const handleCancel = async () => {
         setIsLoading(true);
@@ -92,4 +102,4 @@ export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
             )}
         </>
     );
-} 
+}

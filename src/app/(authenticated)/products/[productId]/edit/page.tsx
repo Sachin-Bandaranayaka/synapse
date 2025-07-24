@@ -5,7 +5,7 @@ import { EditProductClient } from "./edit-product-client";
 import { User } from "next-auth";
 
 interface EditProductPageProps {
-  params: { productId: string };
+  params: Promise<{ productId: string }>;
 }
 
 export default async function EditProductPage({ params }: EditProductPageProps) {
@@ -15,6 +15,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     return redirect('/auth/signin');
   }
   
+  const resolvedParams = await params;
   const prisma = getScopedPrismaClient(session.user.tenantId);
 
   const canViewPage = session.user.role === 'ADMIN' || session.user.permissions?.includes('VIEW_PRODUCTS');
@@ -24,10 +25,10 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
   
   const [product, stockAdjustments] = await Promise.all([
     prisma.product.findUnique({
-      where: { id: params.productId },
+      where: { id: resolvedParams.productId },
     }),
     prisma.stockAdjustment.findMany({
-      where: { productId: params.productId },
+      where: { productId: resolvedParams.productId },
       orderBy: { createdAt: 'desc' },
       include: { adjustedBy: { select: { name: true, email: true } } }
     })
