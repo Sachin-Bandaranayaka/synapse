@@ -1,4 +1,3 @@
-// This is your Prisma schema file
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
@@ -8,6 +7,173 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+}
+
+model Tenant {
+  id                        String            @id @default(cuid())
+  name                      String            @unique
+  isActive                  Boolean           @default(true)
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
+  businessName              String?
+  logoUrl                   String?
+  backgroundColor           String?
+  cardColor                 String?
+  fontColor                 String?
+  fardaExpressClientId      String?
+  fardaExpressApiKey        String?
+  transExpressApiKey        String?
+  royalExpressApiKey        String?
+  businessAddress           String?
+  businessPhone             String?
+  invoicePrefix             String?
+  defaultShippingProvider   ShippingProvider? @default(FARDA_EXPRESS)
+  metaPixelId               String?
+  metaAccessToken           String?
+  metaConversionsApiEnabled Boolean           @default(false)
+  referredById              String?
+  leads                     Lead[]
+  orders                    Order[]
+  products                  Product[]
+  stockAdjustments          StockAdjustment[]
+  referredBy                Tenant?           @relation("TenantReferrals", fields: [referredById], references: [id])
+  referrals                 Tenant[]          @relation("TenantReferrals")
+  trackingUpdates           TrackingUpdate[]
+  users                     User[]
+}
+
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  name             String?
+  password         String
+  role             Role              @default(TEAM_MEMBER)
+  permissions      String[]
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  tenantId         String
+  leads            Lead[]
+  orders           Order[]
+  stockAdjustments StockAdjustment[]
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+
+  @@index([email])
+  @@index([tenantId])
+}
+
+model Product {
+  id               String            @id @default(uuid())
+  code             String
+  name             String
+  description      String?
+  price            Float
+  stock            Int               @default(0)
+  lowStockAlert    Int               @default(10)
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  tenantId         String
+  leads            Lead[]
+  orders           Order[]
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  stockAdjustments StockAdjustment[]
+
+  @@unique([code, tenantId])
+  @@index([tenantId])
+}
+
+model Lead {
+  id          String     @id @default(uuid())
+  csvData     Json
+  productCode String
+  status      LeadStatus @default(PENDING)
+  userId      String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  tenantId    String
+  product     Product    @relation(fields: [productCode, tenantId], references: [code, tenantId])
+  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+  assignedTo  User?      @relation(fields: [userId], references: [id])
+  order       Order?
+
+  @@index([productCode])
+  @@index([userId])
+  @@index([tenantId])
+}
+
+model Order {
+  id                  String            @id
+  number              Int               @default(autoincrement())
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  status              OrderStatus       @default(PENDING)
+  quantity            Int               @default(1)
+  total               Float             @default(0)
+  discount            Float             @default(0)
+  customerName        String
+  customerPhone       String
+  customerSecondPhone String?
+  customerAddress     String
+  customerCity        String            @default("")
+  customerEmail       String?
+  notes               String?
+  shippingProvider    ShippingProvider?
+  trackingNumber      String?
+  shippedAt           DateTime?
+  deliveredAt         DateTime?
+  productId           String
+  leadId              String            @unique
+  userId              String
+  invoicePrinted      Boolean           @default(false)
+  tenantId            String
+  lead                Lead              @relation(fields: [leadId], references: [id])
+  product             Product           @relation(fields: [productId], references: [id])
+  tenant              Tenant            @relation(fields: [tenantId], references: [id])
+  assignedTo          User              @relation(fields: [userId], references: [id])
+  trackingUpdates     TrackingUpdate[]
+
+  @@index([productId])
+  @@index([leadId])
+  @@index([userId])
+  @@index([status])
+  @@index([tenantId])
+}
+
+model StockAdjustment {
+  id            String   @id @default(uuid())
+  productId     String
+  quantity      Int
+  reason        String
+  previousStock Int
+  newStock      Int
+  userId        String
+  createdAt     DateTime @default(now())
+  tenantId      String
+  product       Product  @relation(fields: [productId], references: [id])
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  adjustedBy    User     @relation(fields: [userId], references: [id])
+
+  @@index([productId])
+  @@index([userId])
+  @@index([tenantId])
+}
+
+model TrackingUpdate {
+  id          String   @id @default(uuid())
+  orderId     String
+  status      String
+  location    String?
+  description String?
+  timestamp   DateTime
+  createdAt   DateTime @default(now())
+  tenantId    String
+  order       Order    @relation(fields: [orderId], references: [id])
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([orderId])
+  @@index([timestamp])
+  @@index([tenantId])
 }
 
 enum Role {
@@ -37,187 +203,4 @@ enum ShippingProvider {
   TRANS_EXPRESS
   SL_POST
   ROYAL_EXPRESS
-}
-
-model Tenant {
-  id                  String    @id @default(cuid())
-  name                String    @unique
-  isActive            Boolean   @default(true)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-
-  // --- Branding / Customization Fields ---
-  businessName        String?
-  logoUrl             String?
-  backgroundColor     String?
-  cardColor           String?
-  fontColor           String?
-
-  // --- API KEY FIELDS ---
-  fardaExpressClientId String?
-  fardaExpressApiKey   String?
-  transExpressApiKey   String?
-  royalExpressApiKey   String?
-
-  // --- NEW INVOICE FIELDS ---
-  businessAddress     String?
-  businessPhone       String?
-  invoicePrefix       String?
-
-  // --- NEW: Default Shipping Provider Field ---
-  defaultShippingProvider ShippingProvider? @default(FARDA_EXPRESS)
-
-  // --- NEW REFERRAL FIELDS ---
-  referredById        String?
-  referredBy          Tenant?   @relation("TenantReferrals", fields: [referredById], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  referrals           Tenant[]  @relation("TenantReferrals")
-
-  // --- Existing Relations ---
-  users               User[]
-  products            Product[]
-  leads               Lead[]
-  orders              Order[]
-  stockAdjustments    StockAdjustment[]
-  trackingUpdates     TrackingUpdate[]
-}
-
-model User {
-  id              String    @id @default(uuid())
-  email           String    @unique
-  name            String?
-  password        String
-  role            Role      @default(TEAM_MEMBER)
-  permissions     String[]
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  orders          Order[]
-  leads           Lead[]
-  stockAdjustments StockAdjustment[]
-
-  tenantId        String
-  tenant          Tenant    @relation(fields: [tenantId], references: [id])
-
-  @@index([email])
-  @@index([tenantId])
-}
-
-model Product {
-  id              String    @id @default(uuid())
-  code            String
-  name            String
-  description     String?
-  price           Float
-  stock           Int       @default(0)
-  lowStockAlert   Int       @default(10)
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  orders          Order[]
-  leads           Lead[]
-  stockAdjustments StockAdjustment[]
-
-  tenantId        String
-  tenant          Tenant    @relation(fields: [tenantId], references: [id])
-
-  @@unique([code, tenantId])
-  @@index([tenantId])
-}
-
-model Lead {
-  id            String     @id @default(uuid())
-  csvData       Json
-  productCode   String
-  product       Product    @relation(fields: [productCode, tenantId], references: [code, tenantId])
-  status        LeadStatus @default(PENDING)
-  assignedTo    User?      @relation(fields: [userId], references: [id])
-  userId        String?
-  order         Order?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  tenantId      String
-  tenant        Tenant     @relation(fields: [tenantId], references: [id])
-
-  @@index([productCode])
-  @@index([userId])
-  @@index([tenantId])
-}
-
-model Order {
-  id                  String      @id
-  number              Int         @default(autoincrement())
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  status              OrderStatus @default(PENDING)
-  quantity            Int         @default(1)
-  total               Float       @default(0)
-  discount            Float       @default(0)
-  customerName        String
-  customerPhone       String
-  customerSecondPhone String?
-  customerAddress     String
-  customerCity        String      @default("")
-  customerEmail       String?
-  notes               String?
-  shippingProvider    ShippingProvider?
-  trackingNumber      String?
-  shippedAt           DateTime?
-  deliveredAt         DateTime?
-  trackingUpdates     TrackingUpdate[]
-  product             Product     @relation(fields: [productId], references: [id])
-  productId           String
-  lead                Lead        @relation(fields: [leadId], references: [id])
-  leadId              String      @unique
-  assignedTo          User        @relation(fields: [userId], references: [id])
-  userId              String
-  invoicePrinted      Boolean     @default(false)
-
-  tenantId            String
-  tenant              Tenant      @relation(fields: [tenantId], references: [id])
-
-  @@index([productId])
-  @@index([leadId])
-  @@index([userId])
-  @@index([status])
-  @@index([tenantId])
-}
-
-model StockAdjustment {
-  id            String   @id @default(uuid())
-  product       Product  @relation(fields: [productId], references: [id])
-  productId     String
-  quantity      Int
-  reason        String
-  previousStock Int
-  newStock      Int
-  adjustedBy    User     @relation(fields: [userId], references: [id])
-  userId        String
-  createdAt     DateTime @default(now())
-
-  tenantId      String
-  tenant        Tenant   @relation(fields: [tenantId], references: [id])
-
-  @@index([productId])
-  @@index([userId])
-  @@index([tenantId])
-}
-
-model TrackingUpdate {
-  id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id])
-  status      String
-  location    String?
-  description String?
-  timestamp   DateTime
-  createdAt   DateTime @default(now())
-
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-
-  @@index([orderId])
-  @@index([timestamp])
-  @@index([tenantId])
 }

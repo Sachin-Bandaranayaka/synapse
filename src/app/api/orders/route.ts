@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
 import { LeadStatus, OrderStatus, Prisma } from '@prisma/client';
+import { metaConversionsAPI } from '@/lib/meta-conversions-api';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
@@ -206,7 +207,14 @@ export async function POST(request: Request) {
                     include: {
                         product: true,
                         lead: true,
-                        assignedTo: true
+                        assignedTo: true,
+                        tenant: {
+                            select: {
+                                metaPixelId: true,
+                                metaAccessToken: true,
+                                metaConversionsApiEnabled: true,
+                            },
+                        },
                     }
                 });
 
@@ -251,6 +259,29 @@ export async function POST(request: Request) {
                         },
                     }
                 });
+
+                // Track purchase with Meta Conversions API
+                if (order.tenant.metaConversionsApiEnabled) {
+                    try {
+                        await metaConversionsAPI.trackPurchase(
+                            order.tenant,
+                            {
+                                customerName: csvData.name,
+                                phone: csvData.phone,
+                                email: csvData.email || undefined,
+                                city: csvData.city || undefined,
+                                total: total,
+                                currency: 'USD', // You may want to make this configurable per tenant
+                                productCode: order.product.code,
+                                productName: order.product.name,
+                                orderId: orderId,
+                            }
+                        );
+                    } catch (error) {
+                        console.error('Failed to track purchase with Meta Conversions API:', error);
+                        // Don't fail the order creation if Meta tracking fails
+                    }
+                }
 
                 return order;
             }, {

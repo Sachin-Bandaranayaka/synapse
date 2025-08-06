@@ -25,14 +25,6 @@ export default async function TenantSettingsPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-                <p className="mt-2 text-sm text-gray-600">Manage your business profile and integration settings.</p>
-            </div>
-            <div className="bg-gray-800 p-6 sm:p-8 rounded-lg ring-1 ring-white/10">
-                <SettingsForm tenant={tenant} />
-            </div>
-        </div>
+        <SettingsForm tenant={tenant} />
     );
 }

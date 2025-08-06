@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
 import { Prisma, LeadStatus } from '@prisma/client';
+import { metaConversionsAPI } from '@/lib/meta-conversions-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -127,8 +128,35 @@ export async function POST(request: Request) {
       include: {
         product: true,
         assignedTo: true,
+        tenant: {
+          select: {
+            metaPixelId: true,
+            metaAccessToken: true,
+            metaConversionsApiEnabled: true,
+          },
+        },
       },
     });
+
+    // Track lead creation with Meta Conversions API
+    if (lead.tenant.metaConversionsApiEnabled) {
+      try {
+        await metaConversionsAPI.trackLead(
+          lead.tenant,
+          {
+            customerName: validatedData.csvData.name,
+            phone: validatedData.csvData.phone,
+            email: validatedData.csvData.email || undefined,
+            city: validatedData.csvData.city || undefined,
+            productCode: validatedData.productCode,
+            productName: product.name,
+          }
+        );
+      } catch (error) {
+        console.error('Failed to track lead with Meta Conversions API:', error);
+        // Don't fail the lead creation if Meta tracking fails
+      }
+    }
 
     let notification: string | null = null;
     if (product.stock <= product.lowStockAlert) {
