@@ -15,10 +15,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | J-nex Holdings',
-    default: 'J-nex Holdings Sales Management'
+    template: '%s | Synapse Labs',
+    default: 'Synapse Labs Sales Management'
   },
-  description: 'Sales management system for J-nex Holdings',
+  description: 'Sales management system for Synapse Labs',
 };
 
 export default function RootLayout({
