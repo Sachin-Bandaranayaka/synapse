@@ -1,5 +1,11 @@
 import { Tenant } from '@prisma/client';
 
+interface TenantMetaConfig {
+  metaPixelId: string | null;
+  metaAccessToken: string | null;
+  metaConversionsApiEnabled: boolean;
+}
+
 interface MetaConversionEvent {
   event_name: string;
   event_time: number;
@@ -78,7 +84,7 @@ class MetaConversionsAPI {
   }
 
   async trackLead(
-    tenant: Tenant,
+    tenant: TenantMetaConfig,
     leadData: {
       customerName: string;
       phone?: string;
@@ -146,7 +152,7 @@ class MetaConversionsAPI {
   }
 
   async trackPurchase(
-    tenant: Tenant,
+    tenant: TenantMetaConfig,
     orderData: {
       customerName: string;
       phone?: string;
@@ -239,4 +245,4 @@ class MetaConversionsAPI {
 }
 
 export const metaConversionsAPI = new MetaConversionsAPI();
-export type { MetaConversionEvent, MetaConversionsPayload };
+export type { MetaConversionEvent, MetaConversionsPayload, TenantMetaConfig };

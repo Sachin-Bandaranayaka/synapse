@@ -27,7 +27,8 @@ interface Tenant {
   };
 }
 
-export default function TenantDetailPage({ params }: { params: { id: string } }) {
+export default function TenantDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const [tenantId, setTenantId] = useState<string>('');
   const { data: session, status } = useSession();
   const router = useRouter();
   const [tenant, setTenant] = useState<Tenant | null>(null);
@@ -35,7 +36,11 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === 'loading') return;
+    params.then(({ id }) => setTenantId(id));
+  }, [params]);
+
+  useEffect(() => {
+    if (status === 'loading' || !tenantId) return;
     
     if (!session || session.user.role !== 'SUPER_ADMIN') {
       router.push('/login');
@@ -43,11 +48,11 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
     }
 
     fetchTenant();
-  }, [session, status, router, params.id]);
+  }, [session, status, router, tenantId]);
 
   const fetchTenant = async () => {
     try {
-      const response = await fetch(`/api/superadmin/tenants/${params.id}`);
+      const response = await fetch(`/api/superadmin/tenants/${tenantId}`);
       if (response.ok) {
         const data = await response.json();
         setTenant(data);
@@ -68,7 +73,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
     if (!tenant) return;
 
     try {
-      const response = await fetch(`/api/superadmin/tenants/${params.id}`, {
+      const response = await fetch(`/api/superadmin/tenants/${tenantId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +103,7 @@ export default function TenantDetailPage({ params }: { params: { id: string } })
     }
 
     try {
-      const response = await fetch(`/api/superadmin/tenants/${params.id}`, {
+      const response = await fetch(`/api/superadmin/tenants/${tenantId}`, {
         method: 'DELETE',
       });
 

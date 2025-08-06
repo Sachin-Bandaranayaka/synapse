@@ -46,7 +46,7 @@ export default function SignInPage() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <h1 className="text-4xl font-bold text-indigo-400">J-nex Holdings</h1>
+          <h1 className="text-4xl font-bold text-indigo-400">Synapse Labs</h1>
           <p className="mt-2 text-sm text-gray-400">
             Sign in to access your account
           </p>

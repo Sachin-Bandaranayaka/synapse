@@ -5,8 +5,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
     
@@ -18,13 +19,12 @@ export async function GET(
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         tenant: {
-            select: {
-              id: true,
-              name: true,
-            },
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
@@ -52,8 +52,9 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
     
@@ -74,7 +75,7 @@ export async function PATCH(
     if (tenantId !== undefined) updateData.tenantId = tenantId;
 
     // Prevent users from removing their own super admin role
-    if (role && params.id === session.user.id && role !== 'SUPER_ADMIN') {
+    if (role && id === session.user.id && role !== 'SUPER_ADMIN') {
       return NextResponse.json(
         { error: 'Cannot remove your own super admin role' },
         { status: 400 }
@@ -82,7 +83,7 @@ export async function PATCH(
     }
 
     const user = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         tenant: {
@@ -109,8 +110,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
     
@@ -122,7 +124,7 @@ export async function DELETE(
     }
 
     // Prevent users from deleting themselves
-    if (params.id === session.user.id) {
+    if (id === session.user.id) {
       return NextResponse.json(
         { error: 'Cannot delete your own account' },
         { status: 400 }
@@ -130,7 +132,7 @@ export async function DELETE(
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!user) {
@@ -141,7 +143,7 @@ export async function DELETE(
     }
 
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'User deleted successfully' });

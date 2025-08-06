@@ -5,8 +5,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
     
@@ -18,7 +19,7 @@ export async function GET(
     }
 
     const tenant = await prisma.tenant.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         users: {
           select: {
@@ -60,8 +61,9 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
     
@@ -84,7 +86,7 @@ export async function PATCH(
       const existingTenant = await prisma.tenant.findFirst({
         where: {
           name: name,
-          NOT: { id: params.id },
+          NOT: { id },
         },
       });
 
@@ -97,7 +99,7 @@ export async function PATCH(
     }
 
     const tenant = await prisma.tenant.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
     });
 
@@ -113,8 +115,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
     
@@ -127,7 +130,7 @@ export async function DELETE(
 
     // Check if tenant has users
     const tenant = await prisma.tenant.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: {
@@ -152,7 +155,7 @@ export async function DELETE(
     }
 
     await prisma.tenant.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Tenant deleted successfully' });
