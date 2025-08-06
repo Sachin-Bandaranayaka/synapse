@@ -128,9 +128,9 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, te
     
         // Validate status transitions with comprehensive business rules
     const validTransitions = {
-      'PENDING': ['CONFIRMED', 'CANCELLED'],
-      'CONFIRMED': ['SHIPPED', 'CANCELLED'],
-      'SHIPPED': ['DELIVERED'], // Cannot cancel shipped orders
+      'PENDING': ['CONFIRMED', 'CANCELLED', 'RETURNED'],
+      'CONFIRMED': ['SHIPPED', 'CANCELLED', 'RETURNED'],
+      'SHIPPED': ['DELIVERED', 'RETURNED'], // Cannot cancel shipped orders
       'DELIVERED': ['RETURNED'],
       'CANCELLED': [], // Cannot transition from cancelled
       'RETURNED': []   // Cannot transition from returned
@@ -147,9 +147,9 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, te
       throw new Error(`Cannot cancel order that has been ${currentOrder.status.toLowerCase()}. Please process a return instead.`);
     }
     
-    // Business rule: Only allow returns for delivered orders
-    if (status === OrderStatus.RETURNED && currentOrder.status !== 'DELIVERED') {
-      throw new Error(`Can only return orders that have been delivered. Current status: ${currentOrder.status}`);
+    // Business rule: Allow returns for pending, confirmed, shipped, and delivered orders
+    if (status === OrderStatus.RETURNED && ['CANCELLED', 'RETURNED'].includes(currentOrder.status)) {
+      throw new Error(`Cannot return order that has already been ${currentOrder.status.toLowerCase()}. Current status: ${currentOrder.status}`);
     }
     
     // Handle inventory restoration for cancellations
@@ -173,6 +173,34 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, te
             adjustedBy: { connect: { id: userId } },
             quantity: currentOrder.quantity,
             reason: `Order cancellation: ${orderId}`,
+            previousStock: currentOrder.product.stock,
+            newStock: currentOrder.product.stock + currentOrder.quantity,
+          }
+        });
+      }
+    }
+
+    // Handle inventory restoration for returns
+    if (status === OrderStatus.RETURNED && currentOrder.status !== OrderStatus.RETURNED) {
+      // Restore inventory for returned orders
+      await tx.product.update({
+        where: { id: currentOrder.product.id },
+        data: {
+          stock: {
+            increment: currentOrder.quantity
+          }
+        }
+      });
+      
+      // Create stock adjustment record
+      if (userId) {
+        await tx.stockAdjustment.create({
+          data: {
+            tenant: { connect: { id: tenantId } },
+            product: { connect: { id: currentOrder.product.id } },
+            adjustedBy: { connect: { id: userId } },
+            quantity: currentOrder.quantity,
+            reason: `Order return: ${orderId}`,
             previousStock: currentOrder.product.stock,
             newStock: currentOrder.product.stock + currentOrder.quantity,
           }

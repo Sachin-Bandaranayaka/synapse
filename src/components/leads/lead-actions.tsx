@@ -97,11 +97,13 @@ export function LeadActions({
     const [isCreating, setIsCreating] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [potentialDuplicates, setPotentialDuplicates] = useState<PotentialDuplicate[]>([]);
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
     // --- PERMISSION CHECKS ---
     const canEdit = user.role === 'ADMIN' || user.permissions?.includes('EDIT_LEADS');
     const canDelete = user.role === 'ADMIN' || user.permissions?.includes('DELETE_LEADS');
     const canCreateOrder = user.role === 'ADMIN' || user.permissions?.includes('CREATE_ORDERS');
+    const canUpdateStatus = user.role === 'ADMIN' || user.permissions?.includes('EDIT_LEADS');
 
     const handleCreateOrder = async (force: boolean = false) => {
         setIsCreating(true);
@@ -139,6 +141,27 @@ export function LeadActions({
         }
     };
 
+    const handleUpdateStatus = async (newStatus: 'PENDING' | 'NO_ANSWER' | 'REJECTED') => {
+        setIsUpdatingStatus(true);
+        try {
+            const response = await fetch(`/api/leads/${lead.id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus }),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to update lead status');
+            }
+            onAction(); // Refresh the leads list
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'An error occurred.');
+        } finally {
+            setIsUpdatingStatus(false);
+        }
+    };
+
     const handleDelete = async () => {
         // NOTE: Using a custom modal for this would be better than confirm()
         if (confirm('Are you sure you want to delete this lead? This action cannot be undone.')) {
@@ -158,43 +181,149 @@ export function LeadActions({
         }
     };
 
-    // Only render actions for PENDING leads
-    if (lead.status !== 'PENDING') {
-        return null;
-    }
+    // Render different actions based on lead status
+    const renderActions = () => {
+        switch (lead.status) {
+            case 'PENDING':
+                return (
+                    <div className="flex items-center space-x-3">
+                        {/* Create Order Button */}
+                        {canCreateOrder && (
+                            <button
+                                onClick={() => handleCreateOrder(false)}
+                                disabled={isCreating}
+                                className="text-sm font-medium text-green-400 hover:text-green-300 disabled:opacity-50"
+                            >
+                                {isCreating ? 'Processing...' : 'Create Order'}
+                            </button>
+                        )}
+
+                        {/* Mark as No Answer */}
+                        {canUpdateStatus && (
+                            <button
+                                onClick={() => handleUpdateStatus('NO_ANSWER')}
+                                disabled={isUpdatingStatus}
+                                className="text-sm font-medium text-orange-400 hover:text-orange-300 disabled:opacity-50"
+                            >
+                                {isUpdatingStatus ? 'Updating...' : 'No Answer'}
+                            </button>
+                        )}
+
+                        {/* Mark as Rejected */}
+                        {canUpdateStatus && (
+                            <button
+                                onClick={() => handleUpdateStatus('REJECTED')}
+                                disabled={isUpdatingStatus}
+                                className="text-sm font-medium text-red-400 hover:text-red-300 disabled:opacity-50"
+                            >
+                                {isUpdatingStatus ? 'Updating...' : 'Reject'}
+                            </button>
+                        )}
+
+                        {canEdit && (
+                            <Link 
+                                href={`/leads/${lead.id}`} 
+                                className="text-sm font-medium text-indigo-400 hover:text-indigo-200"
+                            >
+                                Edit
+                            </Link>
+                        )}
+
+                        {canDelete && (
+                            <button
+                                onClick={handleDelete}
+                                className="text-sm font-medium text-red-500 hover:text-red-400"
+                            >
+                                Delete
+                            </button>
+                        )}
+                    </div>
+                );
+
+            case 'NO_ANSWER':
+                return (
+                    <div className="flex items-center space-x-3">
+                        {/* Move back to Pending */}
+                        {canUpdateStatus && (
+                            <button
+                                onClick={() => handleUpdateStatus('PENDING')}
+                                disabled={isUpdatingStatus}
+                                className="text-sm font-medium text-yellow-400 hover:text-yellow-300 disabled:opacity-50"
+                            >
+                                {isUpdatingStatus ? 'Updating...' : 'Call Back'}
+                            </button>
+                        )}
+
+                        {/* Create Order (customer answered on callback) */}
+                        {canCreateOrder && (
+                            <button
+                                onClick={() => handleCreateOrder(false)}
+                                disabled={isCreating}
+                                className="text-sm font-medium text-green-400 hover:text-green-300 disabled:opacity-50"
+                            >
+                                {isCreating ? 'Processing...' : 'Confirmed'}
+                            </button>
+                        )}
+
+                        {/* Mark as Rejected */}
+                        {canUpdateStatus && (
+                            <button
+                                onClick={() => handleUpdateStatus('REJECTED')}
+                                disabled={isUpdatingStatus}
+                                className="text-sm font-medium text-red-400 hover:text-red-300 disabled:opacity-50"
+                            >
+                                {isUpdatingStatus ? 'Updating...' : 'Reject'}
+                            </button>
+                        )}
+
+                        {canEdit && (
+                            <Link 
+                                href={`/leads/${lead.id}`} 
+                                className="text-sm font-medium text-indigo-400 hover:text-indigo-200"
+                            >
+                                Edit
+                            </Link>
+                        )}
+                    </div>
+                );
+
+            case 'REJECTED':
+                return (
+                    <div className="flex items-center space-x-3">
+                        {/* Move back to Pending (in case of mistake) */}
+                        {canUpdateStatus && (
+                            <button
+                                onClick={() => handleUpdateStatus('PENDING')}
+                                disabled={isUpdatingStatus}
+                                className="text-sm font-medium text-yellow-400 hover:text-yellow-300 disabled:opacity-50"
+                            >
+                                {isUpdatingStatus ? 'Updating...' : 'Reactivate'}
+                            </button>
+                        )}
+
+                        {canEdit && (
+                            <Link 
+                                href={`/leads/${lead.id}`} 
+                                className="text-sm font-medium text-indigo-400 hover:text-indigo-200"
+                            >
+                                Edit
+                            </Link>
+                        )}
+                    </div>
+                );
+
+            case 'CONFIRMED':
+                // No actions needed for confirmed leads as they already have orders
+                return null;
+
+            default:
+                return null;
+        }
+    };
 
     return (
         <>
-            <div className="flex items-center space-x-3">
-                {/* --- ADDED CREATE ORDER BUTTON --- */}
-                {canCreateOrder && (
-                    <button
-                        onClick={() => handleCreateOrder(false)}
-                        disabled={isCreating}
-                        className="text-sm font-medium text-green-400 hover:text-green-300 disabled:opacity-50"
-                    >
-                        {isCreating ? 'Processing...' : 'Create Order'}
-                    </button>
-                )}
-
-                {canEdit && (
-                    <Link 
-                        href={`/leads/${lead.id}`} 
-                        className="text-sm font-medium text-indigo-400 hover:text-indigo-200"
-                    >
-                        Edit
-                    </Link>
-                )}
-
-                {canDelete && (
-                    <button
-                        onClick={handleDelete}
-                        className="text-sm font-medium text-red-500 hover:text-red-400"
-                    >
-                        Delete
-                    </button>
-                )}
-            </div>
+            {renderActions()}
 
             {/* --- RENDER THE MODAL --- */}
             <ConfirmationModal
