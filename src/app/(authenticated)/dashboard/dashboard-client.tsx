@@ -51,10 +51,10 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
             </div>
 
             <div>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-medium text-gray-200 w-1/3">Overview</h2>
+                <div className="flex flex-col space-y-4 mb-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+                    <h2 className="text-xl font-medium text-gray-200">Overview</h2>
                     
-                    <div className="flex items-center justify-center space-x-4 w-1/3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                         {/* --- FIX: Conditionally render the Low Stock button --- */}
                         {initialData.lowStockCount > 0 && (
                             <Link href="/products" className="flex items-center space-x-2 rounded-lg bg-orange-500/10 px-3 py-2 text-sm font-semibold text-orange-300 ring-1 ring-inset ring-orange-500/20 hover:bg-orange-500/20 transition-colors">
@@ -75,12 +75,12 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
                         )}
                     </div>
 
-                    <div className="flex items-center justify-end space-x-1 p-1 bg-gray-900 rounded-lg w-1/3">
+                    <div className="flex items-center space-x-1 p-1 bg-gray-900 rounded-lg">
                         {(['daily', 'weekly', 'monthly'] as TimeFilter[]).map((filter) => (
                             <button
                                 key={filter}
                                 onClick={() => setActiveFilter(filter)}
-                                className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                                     activeFilter === filter
                                         ? 'bg-indigo-600 text-white'
                                         : 'text-gray-400 hover:bg-gray-700/50'

@@ -92,8 +92,8 @@ export function UsersClient({ initialUsers, currentUserId }: { initialUsers: Use
 
             {/* Modal for Creating/Editing Users */}
             {isFormOpen && (
-                <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center z-50">
-                    <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg ring-1 ring-white/10">
+                <div className="fixed inset-0 bg-gray-900/80 flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-800 rounded-lg p-4 sm:p-6 w-full max-w-lg ring-1 ring-white/10 max-h-[90vh] overflow-y-auto">
                         <UserForm
                             user={editingUser}
                             onSuccess={() => {
