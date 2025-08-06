@@ -20,7 +20,7 @@ async function getDashboardData(tenantId: string) {
     const [orders, allTimeLeads, products] = await Promise.all([
         prisma.order.findMany({ 
             where: { createdAt: { gte: monthStart } },
-            select: { total: true, createdAt: true } 
+            select: { total: true, createdAt: true, status: true } 
         }),
         prisma.lead.findMany({ 
             select: { status: true, createdAt: true }
@@ -41,12 +41,20 @@ async function getDashboardData(tenantId: string) {
         const periodOrders = orders.filter(o => new Date(o.createdAt) >= startDate);
         const periodLeads = allTimeLeads.filter(l => new Date(l.createdAt) >= startDate);
         const periodConvertedLeads = periodLeads.filter(l => l.status === LeadStatus.CONFIRMED);
+        
+        // Calculate order success and return rates
+        const deliveredOrders = periodOrders.filter(o => o.status === 'DELIVERED');
+        const returnedOrders = periodOrders.filter(o => o.status === 'RETURNED');
+        const orderSuccessRate = periodOrders.length > 0 ? (deliveredOrders.length / periodOrders.length) * 100 : 0;
+        const orderReturnRate = periodOrders.length > 0 ? (returnedOrders.length / periodOrders.length) * 100 : 0;
 
         return {
             orders: periodOrders.length,
             revenue: periodOrders.reduce((sum, order) => sum + order.total, 0),
             leads: periodLeads.length,
             conversionRate: periodLeads.length > 0 ? (periodConvertedLeads.length / periodLeads.length) * 100 : 0,
+            orderSuccessRate,
+            orderReturnRate,
         };
     };
 
@@ -64,6 +72,12 @@ async function getDashboardData(tenantId: string) {
     const totalLeads = allTimeLeads.length;
     const convertedLeads = allTimeLeads.filter(l => l.status === LeadStatus.CONFIRMED).length;
     const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0;
+    
+    // Calculate all-time order success and return rates
+    const allTimeDeliveredOrders = orders.filter(o => o.status === 'DELIVERED');
+    const allTimeReturnedOrders = orders.filter(o => o.status === 'RETURNED');
+    const allTimeOrderSuccessRate = orders.length > 0 ? (allTimeDeliveredOrders.length / orders.length) * 100 : 0;
+    const allTimeOrderReturnRate = orders.length > 0 ? (allTimeReturnedOrders.length / orders.length) * 100 : 0;
 
     // --- FIX: Add the new stock counts to the return object ---
     return {
@@ -74,6 +88,8 @@ async function getDashboardData(tenantId: string) {
             totalLeads,
             convertedLeads,
             conversionRate,
+            orderSuccessRate: allTimeOrderSuccessRate,
+            orderReturnRate: allTimeOrderReturnRate,
         },
         leadsByStatus,
         noStockCount,

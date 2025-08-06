@@ -11,6 +11,8 @@ interface PeriodStats {
     revenue: number;
     leads: number;
     conversionRate: number;
+    orderSuccessRate: number;
+    orderReturnRate: number;
 }
 
 interface DashboardData {
@@ -21,6 +23,8 @@ interface DashboardData {
         totalLeads: number;
         convertedLeads: number;
         conversionRate: number;
+        orderSuccessRate: number;
+        orderReturnRate: number;
     };
     leadsByStatus: Array<{ status: string; count: number; }>;
     noStockCount: number;
@@ -91,18 +95,20 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
                         ))}
                     </div>
                 </div>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                     <StatCard title="Orders" value={currentData.orders.toLocaleString()} delay={0.1} />
                     <StatCard title="Revenue" value={`LKR ${currentData.revenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`} delay={0.2} />
                     <StatCard title="Leads" value={currentData.leads.toLocaleString()} delay={0.3} />
                     <StatCard title="Conversion Rate" value={`${currentData.conversionRate.toFixed(1)}%`} delay={0.4} />
+                    <StatCard title="Order Success Rate" value={`${currentData.orderSuccessRate.toFixed(1)}%`} delay={0.5} />
+                    <StatCard title="Order Return Rate" value={`${currentData.orderReturnRate.toFixed(1)}%`} delay={0.6} />
                 </div>
             </div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
-                <h2 className="text-lg font-medium text-white mb-4">Lead Conversion</h2>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
+                <h2 className="text-lg font-medium text-white mb-4">Lead Conversion & Order Performance</h2>
                 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 mb-6">
                     <div className="rounded-lg bg-gray-700/50 p-4 ring-1 ring-gray-700">
                         <div className="text-sm text-gray-400">Total Leads</div>
                         <div className="mt-2 text-2xl font-semibold text-white">{initialData.allTime.totalLeads}</div>
@@ -112,8 +118,16 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
                         <div className="mt-2 text-2xl font-semibold text-white">{initialData.allTime.convertedLeads}</div>
                     </div>
                     <div className="rounded-lg bg-gray-700/50 p-4 ring-1 ring-gray-700">
-                        <div className="text-sm text-gray-400">Conversion Rate</div>
+                        <div className="text-sm text-gray-400">Lead Conversion Rate</div>
                         <div className="mt-2 text-2xl font-semibold text-white">{(initialData.allTime.conversionRate).toFixed(1)}%</div>
+                    </div>
+                    <div className="rounded-lg bg-gray-700/50 p-4 ring-1 ring-gray-700">
+                        <div className="text-sm text-gray-400">Order Success Rate</div>
+                        <div className="mt-2 text-2xl font-semibold text-green-400">{(initialData.allTime.orderSuccessRate).toFixed(1)}%</div>
+                    </div>
+                    <div className="rounded-lg bg-gray-700/50 p-4 ring-1 ring-gray-700">
+                        <div className="text-sm text-gray-400">Order Return Rate</div>
+                        <div className="mt-2 text-2xl font-semibold text-red-400">{(initialData.allTime.orderReturnRate).toFixed(1)}%</div>
                     </div>
                 </div>
                 
