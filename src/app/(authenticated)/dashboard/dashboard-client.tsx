@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { LeadsChart } from '@/components/dashboard/leads-chart';
+import { ProfitSummary } from '@/components/dashboard/profit-summary';
 import Link from 'next/link';
 
 interface PeriodStats {
@@ -104,6 +105,8 @@ export function DashboardClient({ initialData }: { initialData: DashboardData })
                     <StatCard title="Order Return Rate" value={`${currentData.orderReturnRate.toFixed(1)}%`} delay={0.6} />
                 </div>
             </div>
+
+            <ProfitSummary timeFilter={activeFilter} className="mb-6" />
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }} className="rounded-lg bg-gray-800 p-6 ring-1 ring-white/10">
                 <h2 className="text-lg font-medium text-white mb-4">Lead Conversion & Order Performance</h2>

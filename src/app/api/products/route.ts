@@ -16,6 +16,7 @@ const productSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
     description: z.string().optional(),
     price: z.number().min(0, 'Price must be greater than or equal to 0').max(1000000, 'Price must be less than 1,000,000'),
+    costPrice: z.number().min(0, 'Cost price must be greater than or equal to 0').max(1000000, 'Cost price must be less than 1,000,000').default(0),
     stock: z.number().min(0, 'Stock must be greater than or equal to 0').max(100000, 'Stock must be less than 100,000'),
     lowStockAlert: z.number().min(0, 'Low stock alert must be > 0').max(100000, 'Low stock alert must be < 100,000'),
 });
@@ -83,6 +84,7 @@ export async function POST(request: Request) {
                     name: validatedData.name,
                     description: validatedData.description,
                     price: validatedData.price,
+                    costPrice: validatedData.costPrice,
                     stock: validatedData.stock,
                     lowStockAlert: validatedData.lowStockAlert,
                     tenant: {

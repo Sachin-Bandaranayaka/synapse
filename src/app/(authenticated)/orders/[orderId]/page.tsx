@@ -7,6 +7,8 @@ import { OrderJourney } from '@/components/orders/order-journey';
 import { Invoice } from '@/components/orders/invoice';
 import { PrintButton } from '@/components/orders/print-button';
 import { CancelOrderButton } from '@/components/orders/cancel-order-button';
+import { ProfitBreakdownCard } from '@/components/orders/profit-breakdown';
+import { OrderActions } from '@/components/orders/order-actions';
 
 interface OrderDetailsPageProps {
     params: Promise<{
@@ -107,6 +109,23 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                                     </div>
                                 </div>
                             )}
+
+                            {/* Profit Breakdown */}
+                            <div className="rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
+                                <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Profit Analysis</h3></div>
+                                <div className="border-t border-gray-700 px-6 py-5">
+                                    <ProfitBreakdownCard orderId={order.id} showDetails={true} />
+                                </div>
+                            </div>
+
+                            {/* Order Actions & Cost Management */}
+                            <div className="rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
+                                <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Order Management</h3></div>
+                                <div className="border-t border-gray-700 px-6 py-5">
+                                    <OrderActions order={order} user={session.user} />
+                                </div>
+                            </div>
+
                             <div className="rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
                                 <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Order Journey</h3></div>
                                 <div className="border-t border-gray-700 px-6 py-5"><OrderJourney order={order} /></div>

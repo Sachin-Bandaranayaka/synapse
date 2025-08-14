@@ -14,6 +14,7 @@ interface Product {
   name: string;
   description?: string | null;
   price: number;
+  costPrice: number;
   stock: number;
   lowStockAlert: number;
   totalOrders: number;
@@ -94,6 +95,7 @@ export function ProductList({ products, user }: ProductListProps) {
             <th onClick={() => handleSort('code')} className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">Code</th>
             <th onClick={() => handleSort('name')} className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">Name</th>
             <th onClick={() => handleSort('price')} className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">Price</th>
+            <th onClick={() => handleSort('costPrice')} className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">Cost Price</th>
             <th onClick={() => handleSort('stock')} className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-300">Stock</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Activity</th>
             {(canEdit || canDelete) && (
@@ -110,6 +112,12 @@ export function ProductList({ products, user }: ProductListProps) {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-100">
                 {new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(product.price)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-100">
+                {new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(product.costPrice)}
+                {product.costPrice === 0 && (
+                  <span className="ml-1 text-xs text-yellow-400" title="Cost price not set">⚠️</span>
+                )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right">
                 <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${getStockStatusColor(product.stock, product.lowStockAlert)}`}>

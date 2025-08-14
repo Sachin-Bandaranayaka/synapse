@@ -7,6 +7,7 @@ import { useFormStatus } from 'react-dom';
 import { updateTenantSettings } from './actions';
 // --- FIX: Import ShippingProvider enum from Prisma client ---
 import { Tenant, ShippingProvider } from '@prisma/client';
+import { CostConfigurationForm } from '@/components/settings/cost-configuration-form';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -21,6 +22,7 @@ export function SettingsForm({ tenant }: { tenant: Tenant }) {
   const [state, dispatch] = useActionState(updateTenantSettings, undefined);
 
   return (
+    <div>
     <form action={dispatch} className="space-y-8 divide-y divide-gray-700">
       {/* Business Profile Section */}
       <div className="pt-8">
@@ -114,5 +116,11 @@ export function SettingsForm({ tenant }: { tenant: Tenant }) {
         </div>
       </div>
     </form>
+
+    {/* Cost Configuration Section - Separate form */}
+    <div className="mt-8 pt-8 border-t border-gray-700">
+      <CostConfigurationForm tenantId={tenant.id} />
+    </div>
+  </div>
   );
 }

@@ -5,8 +5,7 @@ import { redirect } from 'next/navigation';
 import { Prisma } from '@prisma/client';
 import { User } from 'next-auth';
 import { OrdersClient } from './orders-client'; // Import our new client component
-import { SearchOrders } from '@/components/orders/search-orders';
-import { SortOrders } from '@/components/orders/sort-orders';
+import { profitCalculationService } from '@/lib/profit-calculation';
 
 export default async function OrdersPage({
   searchParams,
@@ -17,6 +16,7 @@ export default async function OrdersPage({
   const resolvedSearchParams = await searchParams;
   const searchQuery = (resolvedSearchParams.query as string) || '';
   const sortParam = (resolvedSearchParams.sort as string) || 'createdAt:desc';
+  const profitFilter = (resolvedSearchParams.profitFilter as string) || 'all';
 
   if (!session?.user?.tenantId) {
     return redirect('/auth/signin');
@@ -46,26 +46,78 @@ export default async function OrdersPage({
     } : {}),
   };
 
-  const orders = await prisma.order.findMany({
+  let orders = await prisma.order.findMany({
     where,
-    include: { product: true, lead: true, assignedTo: true },
+    include: { 
+      product: true, 
+      lead: { include: { batch: true } }, 
+      assignedTo: true,
+      costs: true
+    },
     orderBy,
   });
 
+  // Apply profit-based filtering if specified
+  if (profitFilter !== 'all') {
+    const ordersWithProfit = await Promise.all(
+      orders.map(async (order) => {
+        try {
+          const profitBreakdown = await profitCalculationService.calculateOrderProfit(order.id, user.tenantId);
+          return { order, profit: profitBreakdown };
+        } catch (error) {
+          console.error(`Error calculating profit for order ${order.id}:`, error);
+          return { order, profit: null };
+        }
+      })
+    );
+
+    const filteredOrders = ordersWithProfit.filter(({ profit }) => {
+      if (!profit) return false;
+      
+      switch (profitFilter) {
+        case 'excellent':
+          return profit.profitMargin >= 30;
+        case 'good':
+          return profit.profitMargin >= 20 && profit.profitMargin < 30;
+        case 'profitable':
+          return profit.netProfit > 0;
+        case 'low-margin':
+          return profit.profitMargin >= 0 && profit.profitMargin < 10;
+        case 'loss':
+          return profit.netProfit < 0;
+        default:
+          return true;
+      }
+    });
+
+    orders = filteredOrders.map(({ order }) => order);
+  }
+
+  // Handle profit-based sorting
+  if (sortField === 'profitMargin' || sortField === 'netProfit') {
+    const ordersWithProfit = await Promise.all(
+      orders.map(async (order) => {
+        try {
+          const profitBreakdown = await profitCalculationService.calculateOrderProfit(order.id, user.tenantId);
+          return { order, profit: profitBreakdown };
+        } catch (error) {
+          return { order, profit: null };
+        }
+      })
+    );
+
+    ordersWithProfit.sort((a, b) => {
+      const aValue = a.profit ? (sortField === 'profitMargin' ? a.profit.profitMargin : a.profit.netProfit) : 0;
+      const bValue = b.profit ? (sortField === 'profitMargin' ? b.profit.profitMargin : b.profit.netProfit) : 0;
+      
+      return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
+    });
+
+    orders = ordersWithProfit.map(({ order }) => order);
+  }
+
   return (
     <div className="space-y-8 p-4 sm:p-6 lg:p-8 bg-gray-900">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-                <h1 className="text-2xl font-semibold text-white">Orders</h1>
-                <p className="mt-2 text-sm text-gray-400">Manage orders and track their status {searchQuery && `• Searching: "${searchQuery}"`}</p>
-            </div>
-            {/* The Search and Sort components can remain here if they use URL params */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <SearchOrders />
-                <SortOrders />
-            </div>
-        </div>
-        
         {/* Render the new client component with the fetched data */}
         <OrdersClient initialOrders={orders} user={user} />
     </div>

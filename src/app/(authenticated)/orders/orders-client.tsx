@@ -5,6 +5,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { OrderActions } from '@/components/orders/order-actions';
+import { ProfitIndicator, ProfitAlert } from '@/components/orders/profit-indicator';
+import { ProfitFilter, ProfitSortOptions } from '@/components/orders/profit-filter';
+import { SearchOrders } from '@/components/orders/search-orders';
 import { OrderStatus, Prisma } from '@prisma/client';
 import { User } from 'next-auth';
 
@@ -68,11 +71,21 @@ export function OrdersClient({ initialOrders, user }: OrdersClientProps) {
 
   return (
     <>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
-          {/* Header text... */}
+          <h1 className="text-2xl font-semibold text-white">Orders</h1>
+          <p className="text-gray-400 text-sm mt-1">
+            Manage and track your orders with profit insights
+          </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <SearchOrders />
+            <ProfitFilter />
+            <ProfitSortOptions />
+          </div>
+          
           {canPrintInvoices && (
             <Link
               href={selectedOrders.length > 0 ? `/orders/print?ids=${selectedOrders.join(',')}` : '#'}
@@ -137,10 +150,18 @@ export function OrdersClient({ initialOrders, user }: OrdersClientProps) {
                       </div>
                       <div className="flex-grow">
                         <div className="flex items-center justify-between">
-                          <div className="flex flex-col">
-                            <Link href={`/orders/${order.id}`} className="text-sm font-medium text-indigo-400 hover:text-indigo-300">Order #{order.id.slice(0, 8)}</Link>
-                            <p className="mt-1 text-sm text-gray-400">{order.product.name} • {order.customerName}</p>
-                            {order.total > 0 && (<p className="text-sm text-gray-400">LKR {order.total.toFixed(2)}</p>)}
+                          <div className="flex flex-col space-y-2">
+                            <div className="flex items-center space-x-3">
+                              <Link href={`/orders/${order.id}`} className="text-sm font-medium text-indigo-400 hover:text-indigo-300">
+                                Order #{order.id.slice(0, 8)}
+                              </Link>
+                              <ProfitIndicator orderId={order.id} size="sm" />
+                            </div>
+                            <p className="text-sm text-gray-400">{order.product.name} • {order.customerName}</p>
+                            {order.total > 0 && (
+                              <p className="text-sm text-gray-400">LKR {order.total.toFixed(2)}</p>
+                            )}
+                            <ProfitAlert orderId={order.id} />
                           </div>
                           <div className="flex items-center space-x-4">
                             <div className="text-right">

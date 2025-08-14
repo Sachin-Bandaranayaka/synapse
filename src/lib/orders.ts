@@ -3,8 +3,40 @@
 import { getScopedPrismaClient, prisma as unscopedPrisma } from './prisma';
 import { LeadStatus, OrderStatus, Prisma, ShippingProvider } from '@prisma/client';
 import { CreateOrderData } from '@/types/orders';
+import { profitCalculationService } from './profit-calculation';
 
-const sendOrderConfirmationEmail = typeof window === 'undefined' ? require('./email').sendOrderConfirmationEmail : null;
+let sendOrderConfirmationEmail: any = null;
+try {
+  if (typeof window === 'undefined') {
+    sendOrderConfirmationEmail = require('./email').sendOrderConfirmationEmail;
+  }
+} catch (error) {
+  // Email module not available in test environment
+  sendOrderConfirmationEmail = null;
+}
+
+// Helper function to get default costs for a tenant
+async function getDefaultCosts(tenantId: string, tx?: Prisma.TransactionClient): Promise<{ packagingCost: number; printingCost: number; returnCost: number }> {
+  try {
+    const client = tx || unscopedPrisma;
+    const costConfig = await client.tenantCostConfig.findUnique({
+      where: { tenantId }
+    });
+
+    return {
+      packagingCost: costConfig?.defaultPackagingCost || 0,
+      printingCost: costConfig?.defaultPrintingCost || 0,
+      returnCost: costConfig?.defaultReturnCost || 0
+    };
+  } catch (error) {
+    console.error(`Error getting default costs for tenant ${tenantId}:`, error);
+    return {
+      packagingCost: 0,
+      printingCost: 0,
+      returnCost: 0
+    };
+  }
+}
 
 export async function createOrderFromLead(data: CreateOrderData) {
   const prisma = getScopedPrismaClient(data.tenantId);
@@ -15,7 +47,10 @@ export async function createOrderFromLead(data: CreateOrderData) {
     const [lead, tenant] = await Promise.all([
       prisma.lead.findUnique({
         where: { id: data.leadId },
-        include: { product: true },
+        include: { 
+          product: true,
+          batch: true 
+        },
       }),
       unscopedPrisma.tenant.findUnique({
         where: { id: data.tenantId },
@@ -92,6 +127,24 @@ export async function createOrderFromLead(data: CreateOrderData) {
           newStock: newStock,
         },
       });
+
+      // Apply default costs and create OrderCosts record
+      const defaultCosts = await getDefaultCosts(data.tenantId, tx);
+      await tx.orderCosts.create({
+        data: {
+          orderId,
+          productCost: lead.product.costPrice * data.quantity,
+          leadCost: lead.batch?.costPerLead || 0,
+          packagingCost: defaultCosts.packagingCost,
+          printingCost: defaultCosts.printingCost,
+          returnCost: 0, // No return cost at creation
+          totalCosts: 0, // Will be calculated
+          grossProfit: 0, // Will be calculated
+          netProfit: 0, // Will be calculated
+          profitMargin: 0, // Will be calculated
+        },
+      });
+
       return order;
     }, { timeout: 30000 });
 
@@ -108,14 +161,34 @@ export async function createOrderFromLead(data: CreateOrderData) {
     }
   }
 
+  // Calculate initial profit breakdown after order creation
+  if (orderResult) {
+    try {
+      await profitCalculationService.calculateOrderProfit(orderResult.id, data.tenantId);
+    } catch (profitError) {
+      console.error('Non-critical error calculating initial profit:', profitError);
+      // Don't fail order creation if profit calculation fails
+    }
+  }
+
   return orderResult;
 }
 
 // Enhanced order status update with business logic
-export async function updateOrderStatus(orderId: string, status: OrderStatus, tenantId: string, userId?: string) {
+export async function updateOrderStatus(orderId: string, status: OrderStatus, tenantId: string, userId?: string, returnCost?: number, shippingId?: string) {
+  // Validate return cost before processing
+  if (status === OrderStatus.RETURNED && returnCost !== undefined) {
+    if (returnCost < 0) {
+      throw new Error('Return cost cannot be negative');
+    }
+    if (returnCost > 10000) {
+      throw new Error('Return cost exceeds maximum allowed amount');
+    }
+  }
+
   const prisma = getScopedPrismaClient(tenantId);
   
-  return await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     // Get current order with product details
     const currentOrder = await tx.order.findUnique({
       where: { id: orderId },
@@ -209,17 +282,44 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus, te
     }
     
     // Update order status
+    const updateData: any = { 
+      status,
+      updatedAt: new Date()
+    };
+
+    // Add shipping ID if provided (for SHIPPED status)
+    if (shippingId && status === OrderStatus.SHIPPED) {
+      updateData.trackingNumber = shippingId;
+      updateData.shippedAt = new Date();
+    }
+
+    // Set delivered timestamp for DELIVERED status
+    if (status === OrderStatus.DELIVERED) {
+      updateData.deliveredAt = new Date();
+    }
+
     const updatedOrder = await tx.order.update({
       where: { id: orderId },
-      data: { 
-        status,
-        updatedAt: new Date()
-      },
+      data: updateData,
       include: { product: true }
     });
     
     return updatedOrder;
   });
+  
+  // Recalculate profit after status change (outside transaction to avoid conflicts)
+  try {
+    await profitCalculationService.recalculateOnStatusChange(orderId, status, tenantId, returnCost);
+  } catch (profitError) {
+    // For return cost validation errors, we should throw them
+    if (profitError instanceof Error && profitError.message.includes('Return cost cannot be negative')) {
+      throw profitError;
+    }
+    console.error(`Non-critical error recalculating profit for order ${orderId}:`, profitError);
+    // Don't throw here as the main order update succeeded for other errors
+  }
+  
+  return result;
 }
 
 export async function getConfirmedOrders(tenantId: string) {

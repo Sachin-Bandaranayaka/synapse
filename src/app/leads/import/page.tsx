@@ -48,10 +48,11 @@ function CSVUpload({
   onUploadComplete,
   setIsLoading,
 }: {
-  onUploadComplete: (leads: LeadData[]) => void;
+  onUploadComplete: (leads: LeadData[], totalCost?: number) => void;
   setIsLoading: (loading: boolean) => void;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const [totalCost, setTotalCost] = useState<string>('');
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -74,7 +75,8 @@ function CSVUpload({
               phone: normalizePhoneNumber(lead.phone),
           }));
 
-          onUploadComplete(normalizedLeads);
+          const costValue = totalCost ? parseFloat(totalCost) : undefined;
+          onUploadComplete(normalizedLeads, costValue);
 
         } catch (err) {
           if (err instanceof z.ZodError) {
@@ -93,7 +95,33 @@ function CSVUpload({
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-lg mx-auto space-y-6">
+      {/* Cost Input Field */}
+      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+        <label htmlFor="total-cost" className="block text-sm font-medium text-gray-300 mb-2">
+          Total Lead Acquisition Cost (Optional)
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">$</span>
+          </div>
+          <input
+            type="number"
+            id="total-cost"
+            value={totalCost}
+            onChange={(e) => setTotalCost(e.target.value)}
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            className="block w-full pl-7 pr-3 py-2 border border-gray-600 rounded-md bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+        </div>
+        <p className="mt-1 text-xs text-gray-500">
+          Enter the total amount spent to acquire these leads. Cost per lead will be calculated automatically.
+        </p>
+      </div>
+
+      {/* File Upload Area */}
       <div className="flex flex-col items-center justify-center w-full">
         <label
           htmlFor="dropzone-file"
@@ -120,11 +148,13 @@ function LeadPreview({
   onConfirm,
   onCancel,
   isImporting,
+  totalCost,
 }: {
   preview: PreviewItem[];
   onConfirm: (leadsToImport: LeadData[]) => void;
   onCancel: () => void;
   isImporting: boolean;
+  totalCost?: number;
 }) {
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
 
@@ -165,6 +195,8 @@ function LeadPreview({
   }, [preview]);
 
   const leadsToImport = preview.filter(item => selectedLeads.has(item.id)).map(item => item.data);
+  const costPerLead = totalCost && leadsToImport.length > 0 ? totalCost / leadsToImport.length : 0;
+  const totalCostForSelected = totalCost && leadsToImport.length > 0 ? (totalCost / preview.length) * leadsToImport.length : 0;
 
   return (
     <div className="space-y-6">
@@ -172,6 +204,27 @@ function LeadPreview({
         <h3 className="text-xl font-semibold text-white">Import Preview</h3>
         <p className="mt-1 text-sm text-gray-400">Review and confirm the leads to import. Leads for out-of-stock or invalid products will be skipped.</p>
       </div>
+
+      {/* Cost Information */}
+      {totalCost && totalCost > 0 && (
+        <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-indigo-300 mb-2">Cost Information</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span className="text-gray-400">Total Batch Cost:</span>
+              <div className="text-white font-medium">${totalCost.toFixed(2)}</div>
+            </div>
+            <div>
+              <span className="text-gray-400">Selected Leads:</span>
+              <div className="text-white font-medium">{leadsToImport.length} of {preview.length}</div>
+            </div>
+            <div>
+              <span className="text-gray-400">Cost per Lead:</span>
+              <div className="text-white font-medium">${costPerLead.toFixed(2)}</div>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="flex flex-wrap gap-4">
         {Object.entries(summary).map(([status, count]) => (
@@ -240,13 +293,15 @@ export default function ImportLeadsPage() {
   const [stage, setStage] = useState<'upload' | 'preview' | 'complete'>('upload');
   const [isLoading, setIsLoading] = useState(false);
   const [previewData, setPreviewData] = useState<PreviewItem[]>([]);
-  const [importResult, setImportResult] = useState<{ count: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ count: number; totalCost?: number; costPerLead?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [batchCost, setBatchCost] = useState<number | undefined>(undefined);
   const router = useRouter();
 
-  const handleUploadComplete = async (leads: LeadData[]) => {
+  const handleUploadComplete = async (leads: LeadData[], totalCost?: number) => {
     setIsLoading(true);
     setError(null);
+    setBatchCost(totalCost);
     try {
       const response = await fetch('/api/leads/import', {
         method: 'POST',
@@ -278,7 +333,11 @@ export default function ImportLeadsPage() {
       const response = await fetch('/api/leads/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'import', leads: leadsToImport }),
+        body: JSON.stringify({ 
+          action: 'import', 
+          leads: leadsToImport,
+          totalCost: batchCost 
+        }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Failed to import leads');
@@ -297,6 +356,7 @@ export default function ImportLeadsPage() {
     setPreviewData([]);
     setImportResult(null);
     setError(null);
+    setBatchCost(undefined);
   };
 
   return (
@@ -326,21 +386,47 @@ export default function ImportLeadsPage() {
 
             {stage === 'preview' && (
               <motion.div key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <LeadPreview preview={previewData} onConfirm={handleConfirmImport} onCancel={handleReset} isImporting={isLoading} />
+                <LeadPreview 
+                  preview={previewData} 
+                  onConfirm={handleConfirmImport} 
+                  onCancel={handleReset} 
+                  isImporting={isLoading}
+                  totalCost={batchCost}
+                />
               </motion.div>
             )}
 
             {stage === 'complete' && (
               <motion.div key="complete" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-                <div className="p-8 rounded-lg bg-gray-800 ring-1 ring-white/10 max-w-md mx-auto">
+                <div className="p-8 rounded-lg bg-gray-800 ring-1 ring-white/10 max-w-lg mx-auto">
                     <h4 className="text-xl font-bold text-green-400">Import Complete!</h4>
                     <p className="mt-2 text-gray-300">Successfully imported {importResult?.count || 0} leads.</p>
-                    <button onClick={() => router.push('/leads')} className="mt-6 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-                        Go to Leads Page
-                    </button>
-                    <button onClick={handleReset} className="mt-4 text-sm text-gray-400 hover:text-white">
-                        Import another file
-                    </button>
+                    
+                    {/* Cost Summary */}
+                    {importResult?.totalCost && importResult.totalCost > 0 && (
+                      <div className="mt-4 p-4 bg-gray-700/50 rounded-lg">
+                        <h5 className="text-sm font-medium text-gray-300 mb-2">Cost Summary</h5>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-400">Total Cost:</span>
+                            <div className="text-white font-medium">${importResult.totalCost.toFixed(2)}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Cost per Lead:</span>
+                            <div className="text-white font-medium">${(importResult.costPerLead || 0).toFixed(2)}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="mt-6 space-y-2">
+                      <button onClick={() => router.push('/leads')} className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                          Go to Leads Page
+                      </button>
+                      <button onClick={handleReset} className="text-sm text-gray-400 hover:text-white">
+                          Import another file
+                      </button>
+                    </div>
                 </div>
               </motion.div>
             )}

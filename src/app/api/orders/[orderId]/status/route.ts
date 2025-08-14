@@ -11,6 +11,8 @@ export const dynamic = 'force-dynamic';
 
 const UpdateOrderStatusSchema = z.object({
   status: z.enum(['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'RETURNED', 'CANCELLED']),
+  returnCost: z.number().min(0, 'Return cost cannot be negative').optional(),
+  shippingId: z.string().optional(),
 });
 
 export async function PATCH(
@@ -27,10 +29,27 @@ export async function PATCH(
     }
 
     const json = await request.json();
-    const { status } = UpdateOrderStatusSchema.parse(json);
+    const { status, returnCost, shippingId } = UpdateOrderStatusSchema.parse(json);
 
-    // 2. Pass the tenantId and userId to the update function
-    const order = await updateOrderStatus(resolvedParams.orderId, status, session.user.tenantId, session.user.id);
+    // Additional validation for return processing
+    if (status === 'RETURNED') {
+      // Business rule: Return cost is required when processing returns
+      if (returnCost === undefined) {
+        return NextResponse.json({
+          error: 'Return cost is required when processing returns'
+        }, { status: 400 });
+      }
+
+      // Business rule: Validate return cost is reasonable
+      if (returnCost > 10000) { // Arbitrary high limit
+        return NextResponse.json({
+          error: 'Return cost exceeds maximum allowed amount'
+        }, { status: 400 });
+      }
+    }
+
+    // 2. Pass the tenantId, userId, and returnCost to the update function
+    const order = await updateOrderStatus(resolvedParams.orderId, status, session.user.tenantId, session.user.id, returnCost, shippingId);
 
     return NextResponse.json(order);
   } catch (error) {

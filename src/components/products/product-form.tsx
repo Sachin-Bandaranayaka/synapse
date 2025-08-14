@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User } from 'next-auth'; // Import the User type from next-auth
+import { CostPriceTooltip } from '@/components/ui/tooltip';
 
 const productSchema = z.object({
   code: z.string()
@@ -18,6 +19,9 @@ const productSchema = z.object({
   price: z.number()
     .min(0, 'Price must be greater than or equal to 0')
     .max(1000000, 'Price must be less than 1,000,000'),
+  costPrice: z.number()
+    .min(0, 'Cost price must be greater than or equal to 0')
+    .max(1000000, 'Cost price must be less than 1,000,000'),
   stock: z.number()
     .min(0, 'Stock must be greater than or equal to 0')
     .max(100000, 'Stock must be less than 100,000'),
@@ -34,6 +38,7 @@ interface Product {
   name: string;
   description?: string | null;
   price: number;
+  costPrice: number;
   stock: number;
   lowStockAlert: number;
 }
@@ -65,6 +70,7 @@ export function ProductForm({ product, onSubmit, onCancel, user }: ProductFormPr
       name: product.name,
       description: product.description || '',
       price: product.price,
+      costPrice: product.costPrice,
       stock: product.stock,
       lowStockAlert: product.lowStockAlert,
     } : {
@@ -72,6 +78,7 @@ export function ProductForm({ product, onSubmit, onCancel, user }: ProductFormPr
       name: '',
       description: '',
       price: 0,
+      costPrice: 0,
       stock: 0,
       lowStockAlert: 5,
     },
@@ -173,6 +180,21 @@ export function ProductForm({ product, onSubmit, onCancel, user }: ProductFormPr
             className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
           {errors.price && <p className="mt-1 text-sm text-red-400">{errors.price.message}</p>}
+        </div>
+        <div>
+          <label htmlFor="costPrice" className="block text-sm font-medium text-gray-100 flex items-center space-x-2">
+            <span>Cost Price (LKR)</span>
+            <CostPriceTooltip />
+          </label>
+          <input
+            type="number"
+            id="costPrice"
+            step="0.01"
+            {...register('costPrice', { valueAsNumber: true })}
+            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 ring-1 ring-white/10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Enter the actual cost you paid for this product"
+          />
+          {errors.costPrice && <p className="mt-1 text-sm text-red-400">{errors.costPrice.message}</p>}
         </div>
         <div>
           <label htmlFor="lowStockAlert" className="block text-sm font-medium text-gray-100">Low Stock Alert</label>

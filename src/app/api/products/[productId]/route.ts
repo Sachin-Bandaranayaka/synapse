@@ -13,6 +13,7 @@ const productUpdateSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name must be less than 100 characters'),
   description: z.string().optional(),
   price: z.number().min(0, 'Price must be >= 0').max(1000000, 'Price must be < 1,000,000'),
+  costPrice: z.number().min(0, 'Cost price must be >= 0').max(1000000, 'Cost price must be < 1,000,000').default(0),
   stock: z.number().min(0, 'Stock must be >= 0').max(100000, 'Stock must be < 100,000'),
   lowStockAlert: z.number().min(0, 'Low stock alert must be >= 0').max(100000, 'Low stock alert must be < 100,000'),
 });
@@ -82,7 +83,7 @@ export async function PUT(
     const hasProductEditPermission = session.user.role === 'ADMIN' || session.user.permissions?.includes('EDIT_PRODUCTS');
     const hasStockEditPermission = session.user.role === 'ADMIN' || session.user.permissions?.includes('EDIT_STOCK');
     const stockIsChanging = currentProduct.stock !== validatedData.stock;
-    const detailsAreChanging = currentProduct.name !== validatedData.name || currentProduct.price !== validatedData.price;
+    const detailsAreChanging = currentProduct.name !== validatedData.name || currentProduct.price !== validatedData.price || currentProduct.costPrice !== validatedData.costPrice;
 
     if (stockIsChanging && !hasStockEditPermission) {
         return new NextResponse('Forbidden: You do not have permission to edit stock levels.', { status: 403 });

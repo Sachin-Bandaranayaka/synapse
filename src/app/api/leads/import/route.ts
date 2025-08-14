@@ -19,6 +19,7 @@ const PreviewPayloadSchema = z.object({
 const ImportPayloadSchema = z.object({
   action: z.literal('import'),
   leads: z.array(LeadSchema), // The frontend will send only the valid leads for the final import
+  totalCost: z.number().min(0).optional(), // Optional total cost for the lead batch
 });
 
 // Create a union schema to validate the request body
@@ -87,13 +88,30 @@ export async function POST(request: Request) {
 
     // --- ACTION 2: IMPORT THE CONFIRMED LEADS ---
     if (payload.action === 'import') {
-      const { leads } = payload; // These leads are pre-filtered by the frontend.
+      const { leads, totalCost = 0 } = payload; // These leads are pre-filtered by the frontend.
 
-      const createdLeads = await prisma.$transaction(
-        leads.map(lead => {
-          const csvData = { ...lead, name: lead.customer_name };
-          return prisma.lead.create({
+      const result = await prisma.$transaction(async (tx) => {
+        // Create the lead batch first if there's a cost or we want to track batches
+        let leadBatch = null;
+        if (totalCost > 0 || leads.length > 0) {
+          const costPerLead = leads.length > 0 ? totalCost / leads.length : 0;
+          
+          leadBatch = await tx.leadBatch.create({
             data: {
+              totalCost,
+              leadCount: leads.length,
+              costPerLead,
+              tenantId,
+              userId: session.user.id,
+            },
+          });
+        }
+
+        // Create the leads and associate them with the batch
+        const createdLeads = await Promise.all(
+          leads.map(lead => {
+            const csvData = { ...lead, name: lead.customer_name };
+            const leadData: any = {
               csvData: csvData as unknown as Prisma.JsonObject,
               status: 'PENDING',
               assignedTo: { connect: { id: session.user.id } },
@@ -106,14 +124,28 @@ export async function POST(request: Request) {
                   },
                 },
               },
+            };
+
+            // Only add batchId if leadBatch exists
+            if (leadBatch) {
+              leadData.batchId = leadBatch.id;
             }
-          });
-        })
-      );
+
+            return tx.lead.create({
+              data: leadData
+            });
+          })
+        );
+
+        return { createdLeads, leadBatch };
+      });
 
       return NextResponse.json({
-        message: `Successfully imported ${createdLeads.length} leads.`,
-        count: createdLeads.length
+        message: `Successfully imported ${result.createdLeads.length} leads.`,
+        count: result.createdLeads.length,
+        batchId: result.leadBatch?.id,
+        totalCost: result.leadBatch?.totalCost || 0,
+        costPerLead: result.leadBatch?.costPerLead || 0,
       });
     }
 
