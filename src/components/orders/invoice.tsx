@@ -51,23 +51,23 @@ export function Invoice({
     const total = Math.max(0, subtotal - discount);
 
     const commonInvoice = (
-        <div className="w-full px-2 bg-white text-black p-4 rounded rounded-2">
-            <div className="flex justify-between mb-2">
+        <div className="w-full px-2 bg-white text-black p-2 sm:p-4 rounded rounded-2">
+            <div className="flex flex-col sm:flex-row sm:justify-between mb-2 gap-2 sm:gap-0">
                 <div className="text-left">
-                    <h1 className={`${isMultiPrint ? 'text-[9pt]' : 'text-[12pt]'} font-bold leading-tight`}>{businessName || 'Your Company Name'}</h1>
-                    <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} text-gray-600 leading-tight`}>
-                        <p>{businessAddress || 'Your Company Address'}</p>
+                    <h1 className={`${isMultiPrint ? 'text-[9pt]' : 'text-[10pt] sm:text-[12pt]'} font-bold leading-tight`}>{businessName || 'Your Company Name'}</h1>
+                    <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[7pt] sm:text-[8pt]'} text-gray-600 leading-tight`}>
+                        <p className="break-words">{businessAddress || 'Your Company Address'}</p>
                         <p>Tel: {businessPhone || 'Your Phone'}</p>
                     </div>
-                    <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} leading-tight mt-1`}>
+                    <div className={`${isMultiPrint ? 'text-[6.5pt]' : 'text-[7pt] sm:text-[8pt]'} leading-tight mt-1`}>
                         <p>Invoice #: {invoiceNumber}</p>
                     </div>
                 </div>
 
-                <div className="text-right">
-                    <div className={`${isMultiPrint ? 'text-[7.5pt]' : 'text-[10pt]'} leading-tight`}>
+                <div className="text-left sm:text-right">
+                    <div className={`${isMultiPrint ? 'text-[7.5pt]' : 'text-[8pt] sm:text-[10pt]'} leading-tight`}>
                         <p>To: <span className="font-bold">{order.customerName}</span></p>
-                        <p className="font-bold">{order.customerAddress}</p>
+                        <p className="font-bold break-words">{order.customerAddress}</p>
                         <p>Tel: <span className="font-bold">{order.customerPhone}</span></p>
                         {order.customerSecondPhone && (
                             <p>Secondary Tel: <span className="font-bold text-blue-600">{order.customerSecondPhone}</span></p>
@@ -76,7 +76,7 @@ export function Invoice({
                 </div>
             </div>
 
-            <table className={`w-full ${isMultiPrint ? 'text-[6.5pt]' : 'text-[8pt]'} mb-0.5 leading-tight`}>
+            <table className={`w-full ${isMultiPrint ? 'text-[6.5pt]' : 'text-[7pt] sm:text-[8pt]'} mb-0.5 leading-tight`}>
                 <thead>
                     <tr className="border-t border-b border-gray-400">
                         <th className="py-0.5 text-left">Item</th>
@@ -86,7 +86,7 @@ export function Invoice({
                 </thead>
                 <tbody>
                     <tr>
-                        <td className="py-0.5">{order.product.name}</td>
+                        <td className="py-0.5 break-words">{order.product.name}</td>
                         <td className="py-0.5 text-right">{order.quantity}</td>
                         <td className="py-0.5 text-right">
                             {new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(subtotal)}

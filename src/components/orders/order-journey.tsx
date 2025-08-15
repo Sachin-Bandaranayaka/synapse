@@ -301,14 +301,14 @@ export function OrderJourney({ order }: OrderJourneyProps) {
                 <div className="px-4 py-5 sm:p-6">
                     <h4 className="text-lg font-medium text-indigo-400">Order Summary</h4>
                     <div className="mt-6 border-t border-gray-700 pt-6">
-                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                        <dl className="grid grid-cols-1 gap-x-4 gap-y-6 md:grid-cols-2">
                             <div>
                                 <dt className="text-sm font-medium text-gray-400">Customer</dt>
                                 <dd className="mt-1 text-sm text-gray-100">
                                     <div className="space-y-1">
                                         <p className="font-medium">{order.customerName}</p>
                                         <p>{order.customerPhone}</p>
-                                        <p className="text-xs">{order.customerAddress}</p>
+                                        <p className="text-xs break-words">{order.customerAddress}</p>
                                     </div>
                                 </dd>
                             </div>

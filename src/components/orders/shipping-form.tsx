@@ -934,13 +934,13 @@ export function ShippingForm({
                 </div>
             )}
 
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <motion.button
                     type="submit"
                     disabled={isLoading}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+                    className="w-full sm:w-auto inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/10 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                     {isLoading ? (
                         <>
@@ -962,7 +962,7 @@ export function ShippingForm({
                         rel="noopener noreferrer"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="inline-flex items-center rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        className="w-full sm:w-auto inline-flex items-center justify-center rounded-md bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
                         Track on Carrier Site →
                     </motion.a>

@@ -55,8 +55,8 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
             {/* This entire div will be hidden when printing */}
             <div className="print:hidden p-4 sm:p-6 lg:p-8">
                 <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                        <h1 className="text-2xl font-semibold text-white">Order Details</h1>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <h1 className="text-xl sm:text-2xl font-semibold text-white">Order Details</h1>
                         <div className="flex items-center space-x-4">
                             <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ${order.status === 'PENDING' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-red-900/50 text-red-300'}`}>
                                 {order.status.toLowerCase()}
@@ -65,11 +65,11 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
                         {/* This is the invoice displayed on the screen */}
-                        <div className="col-span-12 lg:col-span-1">
+                        <div className="order-2 xl:order-1">
                             <h2 className="font-semibold text-xl mb-6 text-white">Invoice Preview</h2>
-                            <div className="bg-white text-black p-4 rounded-md">
+                            <div className="bg-white text-black p-2 sm:p-4 rounded-md overflow-x-auto">
                                 <Invoice
                                     businessName={tenant.businessName}
                                     businessAddress={tenant.businessAddress}
@@ -82,12 +82,12 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
                         </div>
 
                         {/* Other components like Order Journey, Shipping Form, etc. */}
-                        <div className="lg:col-span-1 flex flex-col gap-6">
+                        <div className="order-1 xl:order-2 flex flex-col gap-6">
 
                             {order.status !== 'DELIVERED' && order.status !== 'CANCELLED' && canUpdateShipping && (
                                 <div className="print:hidden rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
-                                    <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Shipping Information</h3></div>
-                                    <div className="border-t border-gray-700 px-6 py-5">
+                                    <div className="px-4 sm:px-6 py-4 sm:py-5"><h3 className="text-lg font-medium text-white">Shipping Information</h3></div>
+                                    <div className="border-t border-gray-700 px-4 sm:px-6 py-4 sm:py-5">
                                         <ShippingForm
                                             orderId={order.id}
                                             currentProvider={order.shippingProvider || undefined}
@@ -112,28 +112,28 @@ export default async function OrderDetailsPage({ params }: OrderDetailsPageProps
 
                             {/* Profit Breakdown */}
                             <div className="rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
-                                <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Profit Analysis</h3></div>
-                                <div className="border-t border-gray-700 px-6 py-5">
+                                <div className="px-4 sm:px-6 py-4 sm:py-5"><h3 className="text-lg font-medium text-white">Profit Analysis</h3></div>
+                                <div className="border-t border-gray-700 px-4 sm:px-6 py-4 sm:py-5">
                                     <ProfitBreakdownCard orderId={order.id} showDetails={true} />
                                 </div>
                             </div>
 
                             {/* Order Actions & Cost Management */}
                             <div className="rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
-                                <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Order Management</h3></div>
-                                <div className="border-t border-gray-700 px-6 py-5">
+                                <div className="px-4 sm:px-6 py-4 sm:py-5"><h3 className="text-lg font-medium text-white">Order Management</h3></div>
+                                <div className="border-t border-gray-700 px-4 sm:px-6 py-4 sm:py-5">
                                     <OrderActions order={order} user={session.user} />
                                 </div>
                             </div>
 
                             <div className="rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
-                                <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Order Journey</h3></div>
-                                <div className="border-t border-gray-700 px-6 py-5"><OrderJourney order={order} /></div>
+                                <div className="px-4 sm:px-6 py-4 sm:py-5"><h3 className="text-lg font-medium text-white">Order Journey</h3></div>
+                                <div className="border-t border-gray-700 px-4 sm:px-6 py-4 sm:py-5"><OrderJourney order={order} /></div>
                             </div>
                             {order.status === 'CONFIRMED' && canDeleteOrders && (
                                 <div className="print:hidden rounded-lg bg-gray-800 overflow-hidden ring-1 ring-white/10">
-                                    <div className="px-6 py-5"><h3 className="text-lg font-medium text-white">Cancel Order</h3></div>
-                                    <div className="border-t border-gray-700 px-6 py-5">
+                                    <div className="px-4 sm:px-6 py-4 sm:py-5"><h3 className="text-lg font-medium text-white">Cancel Order</h3></div>
+                                    <div className="border-t border-gray-700 px-4 sm:px-6 py-4 sm:py-5">
                                         <div className="flex flex-col space-y-4">
                                             <p className="text-sm text-gray-400">If the customer wants to cancel this order, you can do so here. This action cannot be undone.</p>
                                             <CancelOrderButton orderId={order.id} orderStatus={order.status} />
