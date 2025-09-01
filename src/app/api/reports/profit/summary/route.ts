@@ -64,17 +64,33 @@ export async function GET(request: NextRequest) {
 
     const profitBreakdowns = (await Promise.all(profitPromises)).filter(Boolean);
 
-    // Calculate summary statistics
-    const totalProfit = profitBreakdowns.reduce((sum, profit) => sum + (profit?.netProfit || 0), 0);
-    const totalRevenue = profitBreakdowns.reduce((sum, profit) => sum + (profit?.revenue || 0), 0);
+    // Calculate summary statistics with proper validation
+    const totalProfit = profitBreakdowns.reduce((sum, profit) => {
+      const netProfit = profit?.netProfit || 0;
+      return sum + (isFinite(netProfit) ? netProfit : 0);
+    }, 0);
+    
+    const totalRevenue = profitBreakdowns.reduce((sum, profit) => {
+      const revenue = profit?.revenue || 0;
+      return sum + (isFinite(revenue) ? revenue : 0);
+    }, 0);
+    
     const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
     
-    const profitableOrders = profitBreakdowns.filter(profit => (profit?.netProfit || 0) > 0).length;
+    const profitableOrders = profitBreakdowns.filter(profit => {
+      const netProfit = profit?.netProfit || 0;
+      return isFinite(netProfit) && netProfit > 0;
+    }).length;
+    
     const lowMarginOrders = profitBreakdowns.filter(profit => {
       const margin = profit?.profitMargin || 0;
-      return margin >= 0 && margin < 10;
+      return isFinite(margin) && margin >= 0 && margin < 10;
     }).length;
-    const lossOrders = profitBreakdowns.filter(profit => (profit?.netProfit || 0) < 0).length;
+    
+    const lossOrders = profitBreakdowns.filter(profit => {
+      const netProfit = profit?.netProfit || 0;
+      return isFinite(netProfit) && netProfit < 0;
+    }).length;
     
     const avgProfitPerOrder = profitBreakdowns.length > 0 ? totalProfit / profitBreakdowns.length : 0;
 
@@ -107,19 +123,24 @@ export async function GET(request: NextRequest) {
     });
 
     const previousProfitBreakdowns = (await Promise.all(previousProfitPromises)).filter(Boolean);
-    const previousTotalProfit = previousProfitBreakdowns.reduce((sum, profit) => sum + (profit?.netProfit || 0), 0);
+    const previousTotalProfit = previousProfitBreakdowns.reduce((sum, profit) => {
+      const netProfit = profit?.netProfit || 0;
+      return sum + (isFinite(netProfit) ? netProfit : 0);
+    }, 0);
 
     let profitTrend: 'up' | 'down' | 'stable' = 'stable';
     let profitTrendPercentage = 0;
 
-    if (previousTotalProfit !== 0) {
+    if (isFinite(previousTotalProfit) && previousTotalProfit !== 0) {
       const change = ((totalProfit - previousTotalProfit) / Math.abs(previousTotalProfit)) * 100;
-      profitTrendPercentage = Math.abs(change);
-      
-      if (change > 5) {
-        profitTrend = 'up';
-      } else if (change < -5) {
-        profitTrend = 'down';
+      if (isFinite(change)) {
+        profitTrendPercentage = Math.abs(change);
+        
+        if (change > 5) {
+          profitTrend = 'up';
+        } else if (change < -5) {
+          profitTrend = 'down';
+        }
       }
     } else if (totalProfit > 0) {
       profitTrend = 'up';
@@ -127,15 +148,15 @@ export async function GET(request: NextRequest) {
     }
 
     const summary = {
-      totalProfit,
-      profitMargin,
+      totalProfit: isFinite(totalProfit) ? totalProfit : 0,
+      profitMargin: isFinite(profitMargin) ? profitMargin : 0,
       profitableOrders,
       lowMarginOrders,
       lossOrders,
       totalOrders: profitBreakdowns.length,
-      avgProfitPerOrder,
+      avgProfitPerOrder: isFinite(avgProfitPerOrder) ? avgProfitPerOrder : 0,
       profitTrend,
-      profitTrendPercentage,
+      profitTrendPercentage: isFinite(profitTrendPercentage) ? profitTrendPercentage : 0,
     };
 
     return NextResponse.json({ summary });

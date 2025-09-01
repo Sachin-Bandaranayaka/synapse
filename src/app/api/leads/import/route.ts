@@ -107,42 +107,32 @@ export async function POST(request: Request) {
           });
         }
 
-        // Create the leads and associate them with the batch
-        const createdLeads = await Promise.all(
-          leads.map(lead => {
-            const csvData = { ...lead, name: lead.customer_name };
-            const leadData: any = {
-              csvData: csvData as unknown as Prisma.JsonObject,
-              status: 'PENDING',
-              assignedTo: { connect: { id: session.user.id } },
-              tenant: { connect: { id: tenantId } },
-              product: {
-                connect: {
-                  code_tenantId: {
-                    code: lead.product_code,
-                    tenantId: tenantId,
-                  },
-                },
-              },
-            };
+        // Prepare lead data for bulk creation
+        const leadDataArray = leads.map(lead => {
+          const csvData = { ...lead, name: lead.customer_name };
+          return {
+            csvData: csvData as unknown as Prisma.JsonObject,
+            status: 'PENDING' as const,
+            userId: session.user.id,
+            tenantId: tenantId,
+            productCode: lead.product_code,
+            batchId: leadBatch?.id || null,
+          };
+        });
 
-            // Only add batchId if leadBatch exists
-            if (leadBatch) {
-              leadData.batchId = leadBatch.id;
-            }
-
-            return tx.lead.create({
-              data: leadData
-            });
-          })
-        );
+        // Create all leads at once using createMany for better performance
+        const createdLeads = await tx.lead.createMany({
+          data: leadDataArray,
+        });
 
         return { createdLeads, leadBatch };
+      }, {
+        timeout: 30000, // 30 second timeout
       });
 
       return NextResponse.json({
-        message: `Successfully imported ${result.createdLeads.length} leads.`,
-        count: result.createdLeads.length,
+        message: `Successfully imported ${result.createdLeads.count} leads.`,
+        count: result.createdLeads.count,
         batchId: result.leadBatch?.id,
         totalCost: result.leadBatch?.totalCost || 0,
         costPerLead: result.leadBatch?.costPerLead || 0,

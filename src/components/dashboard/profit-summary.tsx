@@ -51,15 +51,21 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    // Handle NaN and invalid numbers
+    if (!isFinite(amount) || isNaN(amount)) {
+      return 'LKR 0';
+    }
+    return `LKR ${amount.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   };
 
   const formatPercentage = (percentage: number) => {
+    // Handle NaN and invalid numbers
+    if (!isFinite(percentage) || isNaN(percentage)) {
+      return '0.0%';
+    }
     return `${percentage.toFixed(1)}%`;
   };
 
@@ -102,14 +108,23 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
     );
   }
 
-  const profitHealthScore = data.totalOrders > 0 
+  const profitHealthScore = data.totalOrders > 0
     ? ((data.profitableOrders / data.totalOrders) * 100)
     : 0;
 
+  // Ensure all data values are valid numbers
+  const safeData = {
+    ...data,
+    totalProfit: isFinite(data.totalProfit) ? data.totalProfit : 0,
+    profitMargin: isFinite(data.profitMargin) ? data.profitMargin : 0,
+    avgProfitPerOrder: isFinite(data.avgProfitPerOrder) ? data.avgProfitPerOrder : 0,
+    profitTrendPercentage: isFinite(data.profitTrendPercentage) ? data.profitTrendPercentage : 0,
+  };
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }} 
-      animate={{ opacity: 1, y: 0 }} 
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
       className={`bg-gray-800 rounded-lg ring-1 ring-white/10 p-6 ${className}`}
     >
@@ -118,7 +133,7 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
           <Target className="h-5 w-5 text-indigo-400" />
           <span>Profit Overview</span>
         </h2>
-        <Link 
+        <Link
           href="/reports?tab=profit"
           className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
         >
@@ -132,18 +147,17 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400">Total Profit</p>
-              <p className={`text-lg font-semibold ${getProfitStatusColor(data.profitMargin)}`}>
-                {formatCurrency(data.totalProfit)}
+              <p className={`text-lg font-semibold ${getProfitStatusColor(safeData.profitMargin)}`}>
+                {formatCurrency(safeData.totalProfit)}
               </p>
             </div>
             <div className="flex items-center space-x-1">
-              {getProfitTrendIcon(data.profitTrend, data.profitTrendPercentage)}
-              <span className={`text-xs ${
-                data.profitTrend === 'up' ? 'text-green-400' : 
+              {getProfitTrendIcon(data.profitTrend, safeData.profitTrendPercentage)}
+              <span className={`text-xs ${data.profitTrend === 'up' ? 'text-green-400' :
                 data.profitTrend === 'down' ? 'text-red-400' : 'text-gray-400'
-              }`}>
-                {data.profitTrendPercentage > 0 && data.profitTrend !== 'stable' && 
-                  `${data.profitTrendPercentage.toFixed(1)}%`
+                }`}>
+                {safeData.profitTrendPercentage > 0 && data.profitTrend !== 'stable' &&
+                  `${safeData.profitTrendPercentage.toFixed(1)}%`
                 }
               </span>
             </div>
@@ -154,8 +168,8 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400">Profit Margin</p>
-              <p className={`text-lg font-semibold ${getProfitStatusColor(data.profitMargin)}`}>
-                {formatPercentage(data.profitMargin)}
+              <p className={`text-lg font-semibold ${getProfitStatusColor(safeData.profitMargin)}`}>
+                {formatPercentage(safeData.profitMargin)}
               </p>
             </div>
             <DollarSign className="h-8 w-8 text-purple-400" />
@@ -166,8 +180,8 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400">Avg Profit/Order</p>
-              <p className={`text-lg font-semibold ${getProfitStatusColor(data.profitMargin)}`}>
-                {formatCurrency(data.avgProfitPerOrder)}
+              <p className={`text-lg font-semibold ${getProfitStatusColor(safeData.profitMargin)}`}>
+                {formatCurrency(safeData.avgProfitPerOrder)}
               </p>
             </div>
             <Target className="h-8 w-8 text-blue-400" />
@@ -178,24 +192,22 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400">Profit Health</p>
-              <p className={`text-lg font-semibold ${
-                profitHealthScore >= 80 ? 'text-green-400' :
+              <p className={`text-lg font-semibold ${profitHealthScore >= 80 ? 'text-green-400' :
                 profitHealthScore >= 60 ? 'text-yellow-400' :
-                profitHealthScore >= 40 ? 'text-orange-400' : 'text-red-400'
-              }`}>
+                  profitHealthScore >= 40 ? 'text-orange-400' : 'text-red-400'
+                }`}>
                 {formatPercentage(profitHealthScore)}
               </p>
             </div>
-            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-              profitHealthScore >= 80 ? 'bg-green-900/20' :
+            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${profitHealthScore >= 80 ? 'bg-green-900/20' :
               profitHealthScore >= 60 ? 'bg-yellow-900/20' :
-              profitHealthScore >= 40 ? 'bg-orange-900/20' : 'bg-red-900/20'
-            }`}>
-              {profitHealthScore >= 80 ? 
+                profitHealthScore >= 40 ? 'bg-orange-900/20' : 'bg-red-900/20'
+              }`}>
+              {profitHealthScore >= 80 ?
                 <TrendingUp className="h-4 w-4 text-green-400" /> :
                 profitHealthScore >= 40 ?
-                <AlertTriangle className="h-4 w-4 text-yellow-400" /> :
-                <TrendingDown className="h-4 w-4 text-red-400" />
+                  <AlertTriangle className="h-4 w-4 text-yellow-400" /> :
+                  <TrendingDown className="h-4 w-4 text-red-400" />
               }
             </div>
           </div>
@@ -205,9 +217,9 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
       {/* Order Breakdown */}
       <div className="space-y-4">
         <h3 className="text-sm font-medium text-gray-300">Order Profitability Breakdown</h3>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link 
+          <Link
             href="/orders?profitFilter=profitable"
             className="bg-gray-900/30 rounded-lg p-4 hover:bg-gray-900/50 transition-colors group"
           >
@@ -223,7 +235,7 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
             </div>
           </Link>
 
-          <Link 
+          <Link
             href="/orders?profitFilter=low-margin"
             className="bg-gray-900/30 rounded-lg p-4 hover:bg-gray-900/50 transition-colors group"
           >
@@ -239,7 +251,7 @@ export function ProfitSummary({ timeFilter, className = '' }: ProfitSummaryProps
             </div>
           </Link>
 
-          <Link 
+          <Link
             href="/orders?profitFilter=loss"
             className="bg-gray-900/30 rounded-lg p-4 hover:bg-gray-900/50 transition-colors group"
           >

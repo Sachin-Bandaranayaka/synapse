@@ -103,11 +103,6 @@ export class ProfitCalculationService {
         // Check cache first
         const cachedProfit = profitCache.getOrderProfit(orderId, tenantId);
         if (cachedProfit) {
-          profitPerformanceMonitor.startTimer('calculateOrderProfit')({
-            tenantId,
-            orderId,
-            cacheHit: true,
-          });
           return cachedProfit;
         }
 
@@ -813,10 +808,6 @@ export class ProfitCalculationService {
         
         const cachedReport = profitCache.getReport(cacheKey);
         if (cachedReport) {
-          profitPerformanceMonitor.startTimer('calculatePeriodProfit')({
-            tenantId,
-            cacheHit: true,
-          });
           return cachedReport;
         }
 

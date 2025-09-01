@@ -47,14 +47,16 @@ async function getDashboardData(tenantId: string) {
         const returnedOrders = periodOrders.filter(o => o.status === 'RETURNED');
         const orderSuccessRate = periodOrders.length > 0 ? (deliveredOrders.length / periodOrders.length) * 100 : 0;
         const orderReturnRate = periodOrders.length > 0 ? (returnedOrders.length / periodOrders.length) * 100 : 0;
+        const conversionRate = periodLeads.length > 0 ? (periodConvertedLeads.length / periodLeads.length) * 100 : 0;
+        const revenue = periodOrders.reduce((sum, order) => sum + (isFinite(order.total) ? order.total : 0), 0);
 
         return {
             orders: periodOrders.length,
-            revenue: periodOrders.reduce((sum, order) => sum + order.total, 0),
+            revenue: isFinite(revenue) ? revenue : 0,
             leads: periodLeads.length,
-            conversionRate: periodLeads.length > 0 ? (periodConvertedLeads.length / periodLeads.length) * 100 : 0,
-            orderSuccessRate,
-            orderReturnRate,
+            conversionRate: isFinite(conversionRate) ? conversionRate : 0,
+            orderSuccessRate: isFinite(orderSuccessRate) ? orderSuccessRate : 0,
+            orderReturnRate: isFinite(orderReturnRate) ? orderReturnRate : 0,
         };
     };
 
@@ -87,9 +89,9 @@ async function getDashboardData(tenantId: string) {
         allTime: {
             totalLeads,
             convertedLeads,
-            conversionRate,
-            orderSuccessRate: allTimeOrderSuccessRate,
-            orderReturnRate: allTimeOrderReturnRate,
+            conversionRate: isFinite(conversionRate) ? conversionRate : 0,
+            orderSuccessRate: isFinite(allTimeOrderSuccessRate) ? allTimeOrderSuccessRate : 0,
+            orderReturnRate: isFinite(allTimeOrderReturnRate) ? allTimeOrderReturnRate : 0,
         },
         leadsByStatus,
         noStockCount,

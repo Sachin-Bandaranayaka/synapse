@@ -6,6 +6,7 @@ import { Prisma } from '@prisma/client';
 import { User } from 'next-auth';
 import { OrdersClient } from './orders-client'; // Import our new client component
 import { profitCalculationService } from '@/lib/profit-calculation';
+import { createPrismaDateFilter, validateDateRange } from '@/lib/date-range-utils';
 
 export default async function OrdersPage({
   searchParams,
@@ -17,6 +18,15 @@ export default async function OrdersPage({
   const searchQuery = (resolvedSearchParams.query as string) || '';
   const sortParam = (resolvedSearchParams.sort as string) || 'createdAt:desc';
   const profitFilter = (resolvedSearchParams.profitFilter as string) || 'all';
+  const startDate = (resolvedSearchParams.startDate as string) || '';
+  const endDate = (resolvedSearchParams.endDate as string) || '';
+
+  // Validate date range parameters
+  const dateValidation = validateDateRange(startDate || undefined, endDate || undefined);
+  if (!dateValidation.isValid) {
+    console.warn('Invalid date range parameters:', dateValidation.error);
+    // Continue with empty date range if invalid
+  }
 
   if (!session?.user?.tenantId) {
     return redirect('/auth/signin');
@@ -44,6 +54,8 @@ export default async function OrdersPage({
         { product: { name: { contains: searchQuery, mode: 'insensitive' } } },
       ],
     } : {}),
+    // Date range filtering (only apply if validation passed)
+    ...(dateValidation.isValid ? createPrismaDateFilter(startDate || undefined, endDate || undefined) : {}),
   };
 
   let orders = await prisma.order.findMany({
@@ -119,7 +131,17 @@ export default async function OrdersPage({
   return (
     <div className="space-y-8 p-4 sm:p-6 lg:p-8 bg-gray-900">
         {/* Render the new client component with the fetched data */}
-        <OrdersClient initialOrders={orders} user={user} />
+        <OrdersClient 
+          initialOrders={orders} 
+          user={user} 
+          searchParams={{
+            query: searchQuery,
+            startDate,
+            endDate,
+            preset: (resolvedSearchParams.preset as string) || '',
+            profitFilter
+          }}
+        />
     </div>
   );
 }

@@ -8,6 +8,7 @@ interface PerformanceMetric {
   orderId?: string;
   cacheHit?: boolean;
   recordCount?: number;
+  error?: boolean;
 }
 
 class ProfitPerformanceMonitor {
@@ -17,7 +18,7 @@ class ProfitPerformanceMonitor {
   /**
    * Start timing an operation
    */
-  startTimer(operation: string): () => PerformanceMetric {
+  startTimer(operation: string): (metadata?: Partial<PerformanceMetric>) => PerformanceMetric {
     const startTime = performance.now();
     
     return (metadata: Partial<PerformanceMetric> = {}) => {
